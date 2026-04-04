@@ -38,8 +38,7 @@ label {
     color: #333;
 }
 
-/* خانات الإدخال بالنص */
-input {
+input, select {
     width: 100%;
     padding: 12px;
     margin-top: 6px;
@@ -47,19 +46,6 @@ input {
     border: 1px solid #bcd7f0;
     font-size: 15px;
     background: #f9fcff;
-    text-align: center;
-}
-
-/* القوائم المنسدلة تبقى يمين */
-select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
-    border-radius: 8px;
-    border: 1px solid #bcd7f0;
-    font-size: 15px;
-    background: #f9fcff;
-    text-align: right;
 }
 
 input:focus, select:focus {
@@ -106,10 +92,10 @@ button:hover {
 <div class="container">
     <h2>مفاضلة تخصصات الطب البشري</h2>
 
-    <label>الاسم الثلاثي</label>
+    <label>الاسم الثلاثي (إجباري)</label>
     <input type="text" id="name" required>
 
-    <label>الرقم الامتحاني</label>
+    <label>الرقم الامتحاني (إجباري)</label>
     <input type="number" id="exam" required>
 
     <label>المعدل</label>
@@ -202,7 +188,7 @@ button:hover {
             choices.push(document.getElementById("choice" + i).value);
         }
 
-        fetch("https://script.google.com/macros/s/AKfycbz6tBzL3bYKNj6vSxT50PmBKJcOgE7TokGrw0B5yXJnNCOFsRYfctbhha9p8Yze9oka/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbzUr-AxMVKHiQ_YUC3PhiwJ1AOX7b27JDZhccQ07yWkIdXg6Eh_CHMTAMXCp8MA1dlg/exec", {
             method: "POST",
             mode: "no-cors",
             headers: { "Content-Type": "application/json" },
