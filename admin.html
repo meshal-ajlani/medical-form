@@ -4,50 +4,112 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>لوحة الإدارة - مفاضلة الطب البشري</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- خط واضح -->
+  <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
+
   <style>
-    :root{--bg:#f4fbff;--card:#fff;--accent:#0b6b8f;--muted:#6b7c86;--danger:#d9534f}
-    body{font-family:'Cairo',sans-serif;background:linear-gradient(180deg,#eef8fb,#f4fbff);margin:0;padding:18px;color:#123}
-    .wrap{max-width:1200px;margin:18px auto}
-    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06);margin-bottom:14px}
-    h1{color:var(--accent);margin:0 0 8px}
-    h3{margin:0 0 8px;color:#0b5f73}
-    .small{font-size:13px;color:var(--muted)}
-    .spec-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-    .spec-row .label{flex:1;font-weight:600}
-    .spec-row input{width:90px;padding:8px;border-radius:8px;border:1px solid #e6f0f3}
+    :root{
+      --bg:#f6fbfd; --card:#fff; --accent:#0b6b8f; --muted:#6b7c86;
+      --col-a:#e8f7f9; --col-b:#fff7e6; --col-c:#f7eefc;
+      --radius:10px; --shadow:0 8px 24px rgba(10,30,40,0.06);
+    }
+    html,body{height:100%}
+    body{
+      margin:0;font-family:'Almarai',system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#eef9fb,#f6fbfd);color:#123;padding:18px;
+    }
+    .wrap{max-width:1200px;margin:0 auto}
+    .card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid rgba(10,30,40,0.03)}
+    h1{color:var(--accent);margin:0 0 8px;font-size:20px}
+    .small{color:var(--muted);font-size:13px;margin-bottom:8px}
+
+    /* جدول المقاعد */
+    .seats-table{width:100%;border-collapse:collapse;margin-top:12px}
+    .seats-table thead th{position:sticky;top:0;background:#fff;padding:10px 8px;text-align:left;border-bottom:2px solid #eef5f7;font-weight:700}
+    .seats-table thead th.type-a{background:var(--col-a)}
+    .seats-table thead th.type-b{background:var(--col-b)}
+    .seats-table thead th.type-c{background:var(--col-c)}
+    .seats-table tbody td{padding:8px;border-bottom:1px solid #f1f6f8;vertical-align:middle}
+    .spec-name{font-weight:600}
+    .seat-input{width:84px;padding:8px;border-radius:8px;border:1px solid #e6f3f6;background:#fff;text-align:center}
+    .seat-input:focus{outline:none;box-shadow:0 8px 20px rgba(11,107,143,0.06);border-color:var(--accent)}
+    .col-a{background:var(--col-a)}
+    .col-b{background:var(--col-b)}
+    .col-c{background:var(--col-c)}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px}
+
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     button{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-    .danger{background:var(--danger)}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .list{max-height:360px;overflow:auto;border:1px solid #eef5f7;padding:10px;border-radius:8px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-bottom:1px solid #eef5f7;text-align:left;font-size:14px}
-    .muted{color:var(--muted)}
+    button.danger{background:#d9534f}
     .badge{background:#eef9fb;padding:6px 8px;border-radius:8px;color:var(--muted);font-weight:600}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .col{flex:1 1 300px;min-width:220px}
-    .log{font-family:monospace;font-size:13px;color:#444;white-space:pre-wrap}
-    .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+    /* تمييز العمود عند المرور */
+    .seats-table tbody td:hover{background:rgba(11,107,143,0.03)}
+    .col-highlight{box-shadow:inset 4px 0 0 rgba(11,107,143,0.06)}
+    @media (max-width:820px){
+      .seat-input{width:64px}
+    }
+
+    /* شاشة القفل (modal) */
+    .lock-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:9999;
+    }
+    .lock-box{
+      width:360px;background:#fff;border-radius:12px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;
+      font-family:'Almarai',sans-serif;
+    }
+    .lock-box h2{margin:0 0 8px;color:#0b6b8f}
+    .lock-box p{margin:0 0 14px;color:var(--muted);font-size:14px}
+    .lock-box input{
+      width:100%;padding:12px;border-radius:10px;border:1px solid #e6f3f6;margin-bottom:12px;font-size:15px;
+    }
+    .lock-box button{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(180deg,var(--accent),#0f8aa6);color:#fff;font-weight:700}
+    .lock-footer{margin-top:10px;font-size:13px;color:#888}
+    .lock-error{color:#b00020;margin-top:8px;font-size:13px}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>لوحة الإدارة - مفاضلة الطب البشري</h1>
-      <p class="small">واجهة إدارة بسيطة للعمل مع Realtime Database. راقب Console وسجل التشغيل المصغر أسفل الصفحة.</p>
+  <!-- شاشة القفل: تظهر قبل تحميل الواجهة -->
+  <div id="lockOverlay" class="lock-overlay" aria-hidden="false">
+    <div class="lock-box" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+      <h2 id="lockTitle">دخول لوحة الإدارة</h2>
+      <p>أدخل كلمة المرور للوصول إلى لوحة الإدارة</p>
+      <input id="adminPasswordInput" type="password" placeholder="كلمة المرور" autocomplete="current-password" />
+      <button id="unlockBtn" type="button">دخول</button>
+      <div id="lockError" class="lock-error" style="display:none"></div>
+      <div class="lock-footer">إذا نسيت كلمة المرور عدّل المتغير <code>ADMIN_PASSWORD</code> في ملف admin.html</div>
     </div>
+  </div>
 
+  <div class="wrap" id="app" style="display:none">
     <div class="card">
-      <h3>المقاعد حسب التخصص والنوع</h3>
-      <div class="small">اضبط عدد المقاعد لكل تخصص ولكل نوع ثم اضغط حفظ.</div>
-      <div id="seatsContainer" class="list" style="margin-top:12px"></div>
+      <h1>لوحة الإدارة - تحديد المقاعد</h1>
+      <p class="small">الجدول أدناه يوضّح بوضوح أي عمود يمثل <strong>عام</strong> أو <strong>موازي</strong> أو <strong>وزارة</strong>. عدّل القيم ثم اضغط حفظ.</p>
 
-      <div class="controls top-actions">
+      <!-- جدول المقاعد -->
+      <div style="overflow:auto">
+        <table class="seats-table" id="seatsTable">
+          <thead>
+            <tr>
+              <th style="min-width:260px">التخصص</th>
+              <th class="type-a">عام<br><small class="small">دراسات عليا عام</small></th>
+              <th class="type-b">موازي<br><small class="small">دراسات عليا موازي</small></th>
+              <th class="type-c">وزارة<br><small class="small">وزارة الصحة</small></th>
+            </tr>
+          </thead>
+          <tbody id="seatsTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="hint">ملاحظة: الألوان الخفيفة تساعدك على تمييز الأعمدة بسرعة.</div>
+
+      <div class="controls" style="margin-top:12px">
         <button id="saveSeatsBtn">حفظ المقاعد</button>
+        <button id="fixDataBtn">فحص وتصحيح البيانات</button>
         <button id="runAlgoBtn">تشغيل آلية المفاضلة</button>
         <button id="loadBtn">إعادة تحميل البيانات</button>
         <button id="clearAllBtn" class="danger">حذف جميع الطلاب</button>
-        <div id="statusBadge" class="badge">جاهز</div>
+        <div class="badge" id="statusBadge">جاهز</div>
       </div>
     </div>
 
@@ -58,12 +120,12 @@
 
     <div class="card">
       <h3>النتائج</h3>
-      <div class="row">
-        <div class="col">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px">
           <h4>المقبولون</h4>
           <div id="acceptedList" class="list">لا توجد نتائج</div>
         </div>
-        <div class="col">
+        <div style="flex:1;min-width:260px">
           <h4>المرفوضون</h4>
           <div id="rejectedList" class="list">لا توجد نتائج</div>
         </div>
@@ -77,15 +139,27 @@
 
     <div class="card">
       <h3>سجل التشغيل (Console مختصر)</h3>
-      <div id="miniLog" class="list log">لا توجد سجلات بعد.</div>
+      <div id="miniLog" class="list" style="font-family:monospace;font-size:13px;color:#444;white-space:pre-wrap">لا توجد سجلات بعد.</div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // ======= إعدادات Firebase لمشروعك =======
+    // ==========================
+    // إعداد كلمة المرور (بسيط - على مستوى العميل)
+    // ==========================
+    // ملاحظة أمنية: هذا الحماية على مستوى الواجهة فقط (client-side).
+    // لا تعتمد عليها لحماية حساسة. لتأمين حقيقي استخدم مصادقة Firebase أو Cloud Functions.
+    //
+    // لتغيير كلمة المرور: استبدل قيمة ADMIN_PASSWORD بالنص الذي تريده.
+    // مثال: const ADMIN_PASSWORD = 'MyStrongPass2026';
+    const ADMIN_PASSWORD = 'admin123'; // <-- غيّر هذه القيمة لكلمة المرور التي تريدها
+
+    // ==========================
+    // إعداد Firebase
+    // ==========================
     const firebaseConfig = {
       apiKey: "AIzaSyBKjw37YQewKBNh_Zl9Mnh1gvy37HZiNF0",
       authDomain: "medical-form2025.firebaseapp.com",
@@ -96,12 +170,11 @@
       appId: "1:1088878162837:web:d3eea8339ec78cf420fc9c",
       measurementId: "G-QP6PXM5E8P"
     };
-    // =======================================
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app, firebaseConfig.databaseURL);
 
-    // التخصصات وأنواع المقاعد (تأكد أن هذه الأسماء تطابق مفاتيح /seats في DB)
+    // قائمة التخصصات وأنواع المقاعد
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -114,17 +187,24 @@
     const validTypes = types.slice();
 
     // عناصر DOM
-    const seatsContainer = document.getElementById('seatsContainer');
+    const lockOverlay = document.getElementById('lockOverlay');
+    const adminPasswordInput = document.getElementById('adminPasswordInput');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const lockError = document.getElementById('lockError');
+    const appDiv = document.getElementById('app');
+
+    const seatsTbody = document.getElementById('seatsTbody');
     const saveSeatsBtn = document.getElementById('saveSeatsBtn');
+    const fixDataBtn = document.getElementById('fixDataBtn');
     const runAlgoBtn = document.getElementById('runAlgoBtn');
     const loadBtn = document.getElementById('loadBtn');
     const clearAllBtn = document.getElementById('clearAllBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    const miniLog = document.getElementById('miniLog');
     const studentsTable = document.getElementById('studentsTable');
     const acceptedList = document.getElementById('acceptedList');
     const rejectedList = document.getElementById('rejectedList');
     const minScoresTable = document.getElementById('minScoresTable');
-    const miniLog = document.getElementById('miniLog');
-    const statusBadge = document.getElementById('statusBadge');
 
     function logMini(msg){
       const time = new Date().toLocaleTimeString();
@@ -133,57 +213,126 @@
     }
     function setStatus(text, color){
       statusBadge.textContent = text;
-      if (color) statusBadge.style.background = color;
-      else statusBadge.style.background = '';
+      statusBadge.style.background = color || '';
     }
 
-    // بناء واجهة إدخال المقاعد
-    function buildSeatsUI(){
-      seatsContainer.innerHTML = '';
-      specialties.forEach(spec=>{
-        const row = document.createElement('div');
-        row.className = 'spec-row';
-        const label = document.createElement('div');
-        label.className = 'label';
-        label.textContent = spec;
-        row.appendChild(label);
+    // ---------- قفل الواجهة: تحقق كلمة المرور ----------
+    function unlockIfPasswordCorrect(input){
+      if (input === ADMIN_PASSWORD) {
+        lockOverlay.style.display = 'none';
+        appDiv.style.display = 'block';
+        lockError.style.display = 'none';
+        logMini('تم تسجيل الدخول إلى لوحة الإدارة.');
+        // بعد فتح الواجهة نبدأ تحميل البيانات
+        initAfterAuth();
+      } else {
+        lockError.style.display = 'block';
+        lockError.textContent = 'كلمة المرور غير صحيحة. حاول مرة أخرى.';
+        adminPasswordInput.value = '';
+      }
+    }
 
-        types.forEach(t=>{
-          const inp = document.createElement('input');
-          inp.type = 'number';
-          inp.min = '0';
-          inp.value = '0';
-          inp.dataset.spec = spec;
-          inp.dataset.type = t;
-          inp.title = t;
-          row.appendChild(inp);
+    unlockBtn.addEventListener('click', () => {
+      unlockIfPasswordCorrect(adminPasswordInput.value);
+    });
+    adminPasswordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') unlockIfPasswordCorrect(adminPasswordInput.value);
+    });
+
+    // لمنع الوصول للـ DOM قبل المصادقة: إخفاء التطبيق افتراضياً (appDiv display none)
+    // initAfterAuth() تُستدعى فقط بعد المصادقة الناجحة
+    function initAfterAuth(){
+      buildSeatsRows();
+      loadSeats();
+      loadStudents();
+      loadResults();
+      attachRealtimeListeners();
+    }
+
+    // ---------- بناء صفوف الجدول ديناميكياً ----------
+    function buildSeatsRows(){
+      seatsTbody.innerHTML = '';
+      specialties.forEach(spec => {
+        const tr = document.createElement('tr');
+        const tdSpec = document.createElement('td');
+        tdSpec.innerHTML = `<div class="spec-name">${escapeHtml(spec)}</div>`;
+        tr.appendChild(tdSpec);
+
+        // عام
+        const tdA = document.createElement('td');
+        tdA.className = 'col-a';
+        const inpA = document.createElement('input');
+        inpA.type = 'number';
+        inpA.min = '0';
+        inpA.value = '0';
+        inpA.className = 'seat-input';
+        inpA.dataset.spec = spec;
+        inpA.dataset.type = 'عام';
+        tdA.appendChild(inpA);
+        tr.appendChild(tdA);
+
+        // موازي
+        const tdB = document.createElement('td');
+        tdB.className = 'col-b';
+        const inpB = document.createElement('input');
+        inpB.type = 'number';
+        inpB.min = '0';
+        inpB.value = '0';
+        inpB.className = 'seat-input';
+        inpB.dataset.spec = spec;
+        inpB.dataset.type = 'موازي';
+        tdB.appendChild(inpB);
+        tr.appendChild(tdB);
+
+        // وزارة
+        const tdC = document.createElement('td');
+        tdC.className = 'col-c';
+        const inpC = document.createElement('input');
+        inpC.type = 'number';
+        inpC.min = '0';
+        inpC.value = '0';
+        inpC.className = 'seat-input';
+        inpC.dataset.spec = spec;
+        inpC.dataset.type = 'وزارة';
+        tdC.appendChild(inpC);
+        tr.appendChild(tdC);
+
+        seatsTbody.appendChild(tr);
+      });
+
+      // إضافة تمييز عمود عند المرور
+      document.querySelectorAll('.seat-input').forEach(inp=>{
+        inp.addEventListener('focus', (e)=>{
+          const td = e.target.closest('td');
+          td.classList.add('col-highlight');
         });
-
-        seatsContainer.appendChild(row);
+        inp.addEventListener('blur', (e)=>{
+          const td = e.target.closest('td');
+          td.classList.remove('col-highlight');
+        });
       });
     }
-    buildSeatsUI();
 
-    // تحميل المقاعد من DB وعرضها
+    // ---------- تحميل المقاعد من DB وعرضها في الجدول ----------
     async function loadSeats(){
       try {
         const snap = await get(ref(db, 'seats'));
         const data = snap.exists() ? snap.val() : {};
-        document.querySelectorAll('[data-spec]').forEach(inp=>{
+        document.querySelectorAll('.seat-input').forEach(inp=>{
           const s = inp.dataset.spec;
           const t = inp.dataset.type;
           inp.value = (data[s] && data[s][t] !== undefined) ? data[s][t] : 0;
         });
-        logMini('تم تحميل المقاعد.');
         setStatus('مقاعد محمّلة', '#dff0d8');
+        logMini('تم تحميل المقاعد.');
       } catch (err) {
         console.error('loadSeats error', err);
-        logMini('خطأ عند تحميل المقاعد. افتح Console.');
         setStatus('خطأ تحميل المقاعد', '#f8d7da');
+        logMini('خطأ عند تحميل المقاعد. افتح Console.');
       }
     }
 
-    // حفظ المقاعد إلى DB
+    // ---------- حفظ المقاعد إلى DB بصيغة مفهومة ----------
     saveSeatsBtn.addEventListener('click', async ()=>{
       try {
         const seatsObj = {};
@@ -195,18 +344,18 @@
           });
         });
         await set(ref(db, 'seats'), seatsObj);
-        logMini('تم حفظ المقاعد إلى /seats.');
         setStatus('تم حفظ المقاعد', '#dff0d8');
+        logMini('تم حفظ المقاعد إلى /seats.');
         alert('تم حفظ المقاعد.');
       } catch (err) {
         console.error('saveSeats error', err);
-        logMini('فشل حفظ المقاعد. افتح Console.');
         setStatus('فشل حفظ المقاعد', '#f8d7da');
+        logMini('فشل حفظ المقاعد. افتح Console.');
         alert('فشل حفظ المقاعد. افتح Console للمزيد.');
       }
     });
 
-    // تحميل وعرض الطلاب
+    // ---------- تحميل وعرض الطلاب ----------
     async function loadStudents(){
       try {
         const snap = await get(ref(db, 'students'));
@@ -235,7 +384,7 @@
           <td><button data-id="${id}" class="delBtn">حذف</button></td>
         </tr>`;
       }).join('');
-      studentsTable.innerHTML = `<table><thead><tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>الرغبات</th><th>إجراء</th></tr></thead><tbody>${rows}</tbody></table>`;
+      studentsTable.innerHTML = `<table style="width:100%;border-collapse:collapse"><thead><tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>الرغبات</th><th>إجراء</th></tr></thead><tbody>${rows}</tbody></table>`;
       document.querySelectorAll('.delBtn').forEach(b=>{
         b.addEventListener('click', async (e)=>{
           const id = e.target.dataset.id;
@@ -251,25 +400,98 @@
       });
     }
 
-    // حذف جميع الطلاب
-    clearAllBtn.addEventListener('click', async ()=>{
-      if (!confirm('هل تريد حذف جميع سجلات الطلاب؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+    // ---------- Fix Data: فحص وتصحيح الطلاب (عرضي) ----------
+    async function analyzeAndFixStudents(shouldWrite = false){
       try {
-        await remove(ref(db, 'students'));
-        await remove(ref(db, 'results'));
-        await loadStudents();
-        renderResultsEmpty();
-        logMini('تم حذف جميع الطلاب والنتائج.');
-        setStatus('تم حذف الكل', '#fff3cd');
-        alert('تم حذف جميع الطلاب والنتائج.');
+        logMini('بدء فحص بيانات الطلاب...');
+        const snap = await get(ref(db, 'students'));
+        if (!snap.exists()) {
+          logMini('لا يوجد طلاب في /students.');
+          alert('لا يوجد طلاب في /students.');
+          return { fixedCount: 0, issues: [] };
+        }
+        const studentsObj = snap.val();
+        const updates = {};
+        let fixedCount = 0;
+        const issues = [];
+
+        for (const [id, s] of Object.entries(studentsObj)){
+          const original = JSON.parse(JSON.stringify(s));
+          let changed = false;
+
+          if (s.name) s.name = normalizeArabicText(s.name);
+          if (s.examNo) s.examNo = String(s.examNo).trim();
+          s.score = Number(s.score) || 0;
+
+          if (!Array.isArray(s.prefs)) {
+            issues.push({ id, reason: 'prefs ليست مصفوفة', value: s.prefs });
+            s.prefs = [];
+            changed = true;
+          } else {
+            const newPrefs = [];
+            for (const p of s.prefs){
+              if (!p || (!p.specialty && !p.type)) continue;
+              const rawSpec = p.specialty || '';
+              const rawType = p.type || '';
+              const normSpec = normalizeArabicText(rawSpec);
+              const matchedSpec = findClosestSpecialty(normSpec);
+              const normType = normalizeType(rawType);
+              if (!matchedSpec) {
+                issues.push({ id, reason: 'تخصص غير مطابق', specialty: rawSpec });
+                newPrefs.push({ specialty: normSpec, type: normType || rawType });
+                if (!normType) issues.push({ id, reason: 'نوع غير صالح', type: rawType });
+                changed = true;
+              } else {
+                if (!normType) {
+                  issues.push({ id, reason: 'نوع غير صالح', type: rawType });
+                }
+                newPrefs.push({ specialty: matchedSpec, type: normType || rawType });
+                if (matchedSpec !== rawSpec) changed = true;
+                if (normType && normType !== rawType) changed = true;
+              }
+            }
+            s.prefs = newPrefs;
+          }
+
+          if (changed) {
+            updates[`students/${id}`] = s;
+            fixedCount++;
+          }
+        }
+
+        if (shouldWrite && Object.keys(updates).length > 0) {
+          await update(ref(db), updates);
+          logMini(`تم تطبيق التصحيحات على ${Object.keys(updates).length} طالب.`);
+        } else if (!shouldWrite) {
+          logMini(`تم فحص البيانات. ${fixedCount} سجل يحتاج تصحيح (لم تُطبّق التغييرات).`);
+        }
+
+        return { fixedCount, issues, updatesApplied: shouldWrite ? Object.keys(updates).length : 0 };
       } catch (err) {
-        console.error('clearAll error', err);
-        logMini('فشل حذف الكل. افتح Console.');
-        setStatus('فشل حذف الكل', '#f8d7da');
+        console.error('analyzeAndFixStudents error', err);
+        logMini('خطأ أثناء فحص/تصحيح الطلاب. افتح Console.');
+        return { fixedCount: 0, issues: [{ error: String(err) }] };
+      }
+    }
+
+    fixDataBtn.addEventListener('click', async ()=>{
+      if (!confirm('هل تريد فحص وتصحيح بيانات الطلاب الآن؟ (سيعرض تقريراً، ويمكنك تطبيق التغييرات)')) return;
+      setStatus('يفحص البيانات...', '#cce5ff');
+      const report = await analyzeAndFixStudents(false);
+      logMini(`تقرير الفحص: ${report.fixedCount} سجلات تحتاج تصحيح. افتح Console للتفاصيل.`);
+      console.log('Fix report (preview):', report);
+      if (report.fixedCount > 0 && confirm(`تم العثور على ${report.fixedCount} سجلات تحتاج تصحيح. هل تريد تطبيق التصحيحات الآن؟`)) {
+        setStatus('يطبّق التصحيحات...', '#fff3cd');
+        const applied = await analyzeAndFixStudents(true);
+        logMini(`تم تطبيق التصحيحات على ${applied.updatesApplied} سجلات.`);
+        setStatus('انتهى التصحيح', '#d4edda');
+        await loadStudents();
+      } else {
+        setStatus('انتهى الفحص (لم تُطبّق تغييرات)', '#d1ecf1');
       }
     });
 
-    // دالة تشغيل المفاضلة (محسّنة مع فحوصات)
+    // ---------- تشغيل المفاضلة (محلي) ----------
     runAlgoBtn.addEventListener('click', async () => {
       try {
         logMini('بدء تشغيل المفاضلة...');
@@ -296,7 +518,6 @@
           return;
         }
 
-        // تأكد من أن المعدلات أرقام
         students.forEach(s => {
           s.score = Number(s.score);
           if (isNaN(s.score)) {
@@ -305,10 +526,8 @@
           }
         });
 
-        // ترتيب تنازلي حسب المعدل
         students.sort((a, b) => b.score - a.score);
 
-        // بناء نسخة قابلة للتعديل من المقاعد
         const seatsLeft = {};
         const seatsKeys = Object.keys(seats);
         seatsKeys.forEach(spec => {
@@ -320,8 +539,6 @@
 
         const accepted = {};
         const rejected = {};
-
-        // فحص سريع للتوافق بين أسماء التخصصات في seats و prefs
         const seatNamesSet = new Set(seatsKeys);
 
         for (const stu of students) {
@@ -361,7 +578,6 @@
           }
         }
 
-        // حساب الحد الأدنى للمعدل لكل تخصص ونوع
         const minScores = {};
         seatsKeys.forEach(spec => {
           minScores[spec] = {};
@@ -393,7 +609,7 @@
       }
     });
 
-    // عرض النتائج من DB
+    // ---------- عرض النتائج ----------
     async function loadResults(){
       try {
         const snap = await get(ref(db, 'results'));
@@ -420,7 +636,7 @@
       rejectedList.innerHTML = rej.length ? rej.map(r=>`<div>${escapeHtml(r.name)} — ${r.score}</div>`).join('') : '<div class="small muted">لا يوجد مرفوضون</div>';
 
       const minScores = data.minScores || {};
-      let html = '<table><thead><tr><th>التخصص</th>';
+      let html = '<table style="width:100%;border-collapse:collapse"><thead><tr><th>التخصص</th>';
       types.forEach(t=> html += `<th>${t}</th>`);
       html += '</tr></thead><tbody>';
       specialties.forEach(s=>{
@@ -435,46 +651,97 @@
       minScoresTable.innerHTML = html;
     }
 
-    // مراقبة التغييرات الحية
-    onValue(ref(db, 'results'), snap => {
-      if (snap.exists()) renderResults(snap.val());
-      else renderResultsEmpty();
-    });
-    onValue(ref(db, 'students'), snap => {
-      const data = snap.exists() ? snap.val() : {};
-      renderStudentsTable(data);
-    });
-    onValue(ref(db, 'seats'), snap => {
-      const data = snap.exists() ? snap.val() : {};
-      document.querySelectorAll('[data-spec]').forEach(inp=>{
-        const s = inp.dataset.spec; const t = inp.dataset.type;
-        inp.value = (data[s] && data[s][t] !== undefined) ? data[s][t] : inp.value;
+    // ---------- مراقبة التغييرات الحية ----------
+    function attachRealtimeListeners(){
+      onValue(ref(db, 'results'), snap => {
+        if (snap.exists()) renderResults(snap.val());
+        else renderResultsEmpty();
       });
+      onValue(ref(db, 'students'), snap => {
+        const data = snap.exists() ? snap.val() : {};
+        renderStudentsTable(data);
+      });
+      onValue(ref(db, 'seats'), snap => {
+        const data = snap.exists() ? snap.val() : {};
+        document.querySelectorAll('.seat-input').forEach(inp=>{
+          const s = inp.dataset.spec; const t = inp.dataset.type;
+          inp.value = (data[s] && data[s][t] !== undefined) ? data[s][t] : inp.value;
+        });
+      });
+    }
+
+    // ---------- حذف جميع الطلاب ----------
+    clearAllBtn.addEventListener('click', async ()=>{
+      if (!confirm('هل تريد حذف جميع سجلات الطلاب؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+      try {
+        await remove(ref(db, 'students'));
+        await remove(ref(db, 'results'));
+        setStatus('تم حذف الكل', '#fff3cd');
+        logMini('تم حذف جميع الطلاب والنتائج.');
+        alert('تم حذف جميع الطلاب والنتائج.');
+      } catch (err) {
+        console.error('clearAll error', err);
+        setStatus('فشل حذف الكل', '#f8d7da');
+        logMini('فشل حذف الكل. افتح Console.');
+      }
     });
 
-    // أزرار مساعدة
-    loadBtn.addEventListener('click', async ()=>{
-      await loadSeats();
-      await loadStudents();
-      await loadResults();
-      alert('تم إعادة تحميل البيانات.');
-    });
+    // ---------- أدوات تصحيح النص العربي بسيطة ----------
+    function normalizeArabicText(s){
+      if (!s && s !== '') return s;
+      s = String(s).trim();
+      s = s.replace(/[إأآا]/g, 'ا');
+      s = s.replace(/[يى]/g, 'ي');
+      s = s.replace(/ة/g, 'ة');
+      s = s.replace(/\s+/g, ' ');
+      s = s.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+      return s;
+    }
+    function findClosestSpecialty(name){
+      if (!name) return null;
+      const n = normalizeArabicText(name);
+      for (const s of specialties){
+        if (normalizeArabicText(s) === n) return s;
+      }
+      for (const s of specialties){
+        const ns = normalizeArabicText(s);
+        if (ns.includes(n) || n.includes(ns)) return s;
+      }
+      const tokens = n.split(' ');
+      for (const s of specialties){
+        const ns = normalizeArabicText(s);
+        let matchCount = 0;
+        tokens.forEach(t => { if (t && ns.includes(t)) matchCount++; });
+        if (matchCount >= Math.max(1, tokens.length - 1)) return s;
+      }
+      return null;
+    }
+    function normalizeType(t){
+      if (!t && t !== '') return t;
+      const s = String(t).trim().toLowerCase();
+      if (['عام','a','general','g'].includes(s)) return 'عام';
+      if (['موازي','parallel','m'].includes(s)) return 'موازي';
+      if (['وزارة','ministry','وزارة الصحة','وزارة_الصحة'].includes(s)) return 'وزارة';
+      if (s.includes('وز')) return 'وزارة';
+      if (s.includes('موا')) return 'موازي';
+      if (s.includes('عام')) return 'عام';
+      return null;
+    }
 
-    // تحميل أولي
-    await loadSeats();
-    await loadStudents();
-    await loadResults();
+    // ---------- تحميل أولي بعد المصادقة ----------
+    async function loadSeats(){ /* تم تعريف أعلاه */ }
+    async function loadStudents(){ /* تم تعريف أعلاه */ }
+    async function loadResults(){ /* تم تعريف أعلاه */ }
 
-    // دالة مساعدة للهروب من XSS عند عرض نصوص المستخدم
+    // ---------- دالة مساعدة للهروب من XSS عند عرض نصوص المستخدم ----------
     function escapeHtml(text){
       if (text === undefined || text === null) return '';
-      return String(text)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+      return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
     }
+
+    // إذا أردت: يمكنك تلقائياً إظهار شاشة القفل عند تحميل الصفحة (هي افتراضياً ظاهرة)
+    // لا حاجة لاستدعاء أي شيء هنا؛ التهيئة تتم بعد المصادقة في initAfterAuth()
+
   </script>
 </body>
 </html>
