@@ -92,7 +92,9 @@ th, td {
     <table id="minTable">
         <tr>
             <th>التخصص</th>
-            <th>الحد الأدنى</th>
+            <th>العام</th>
+            <th>الموازي</th>
+            <th>الصحة</th>
         </tr>
     </table>
 
@@ -124,31 +126,51 @@ th, td {
 
 <script>
 
-// تحميل المقاعد
+// التخصصات
+const specialties = [
+    "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
+    "الداخلية الدموية","الداخلية الكلية","الداخلية الرئوية","الداخلية الخمجية",
+    "الطب النفسي","العينية","الأذنية","الجلدية",
+    "طب الأطفال","النسائية والتوليد",
+    "الجراحة العامة","الجراحة العظمية","الجراحة البولية","الجراحة الصدرية","الجراحة العصبية",
+    "الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية","جراحة الأطفال",
+    "الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي",
+    "طب الأورام","طب الأسرة","الطب الشرعي","طب الطوارئ","التخدير والإنعاش",
+    "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
+];
+
+// تحميل المقاعد من LocalStorage
 function loadSeats() {
-    fetch("seats.json")
-        .then(r => r.json())
-        .then(data => {
-            const table = document.getElementById("seatsTable");
-            table.innerHTML = `
-                <tr>
-                    <th>التخصص</th>
-                    <th>العام</th>
-                    <th>الموازي</th>
-                    <th>الصحة</th>
-                </tr>
-            `;
-            Object.keys(data).forEach(spec => {
-                table.innerHTML += `
-                    <tr>
-                        <td>${spec}</td>
-                        <td><input id="g_${spec}" value="${data[spec].general}"></td>
-                        <td><input id="p_${spec}" value="${data[spec].parallel}"></td>
-                        <td><input id="h_${spec}" value="${data[spec].health}"></td>
-                    </tr>
-                `;
-            });
+    let seats = JSON.parse(localStorage.getItem("seats") || "{}");
+
+    // إذا أول مرة → نعمل مقاعد افتراضية
+    if (Object.keys(seats).length === 0) {
+        specialties.forEach(s => {
+            seats[s] = { general: 0, parallel: 0, health: 0 };
         });
+        localStorage.setItem("seats", JSON.stringify(seats));
+    }
+
+    const table = document.getElementById("seatsTable");
+    table.innerHTML = `
+        <tr>
+            <th>التخصص</th>
+            <th>العام</th>
+            <th>الموازي</th>
+            <th>الصحة</th>
+        </tr>
+    `;
+
+    Object.keys(seats).forEach(spec => {
+        table.innerHTML += `
+            <tr>
+                <td>${spec}</td>
+                <td><input id="g_${spec}" value="${seats[spec].general}"></td>
+                <td><input id="p_${spec}" value="${seats[spec].parallel}"></td>
+                <td><input id="h_${spec}" value="${seats[spec].health}"></td>
+            </tr>
+        `;
+    });
 }
 
 // حفظ المقاعد
@@ -166,11 +188,7 @@ function saveSeats() {
         };
     });
 
-    fetch("seats.json", {
-        method: "PUT",
-        body: JSON.stringify(seats)
-    });
-
+    localStorage.setItem("seats", JSON.stringify(seats));
     alert("تم حفظ المقاعد");
     updateResults();
 }
@@ -199,16 +217,22 @@ function deleteOneStudent() {
 // التوزيع التلقائي
 function updateResults() {
     const students = JSON.parse(localStorage.getItem("students") || "[]");
+    const seats = JSON.parse(localStorage.getItem("seats") || "{}");
 
     const accepted = [];
     const minScores = {};
-    const acceptedBySpec = {};
 
     students.forEach(student => {
+        let assigned = false;
+
         for (let i = 0; i < student.choices.length; i++) {
-            if (student.choices[i] !== "" && student.types[i] !== "") {
-                const spec = student.choices[i];
-                const type = student.types[i];
+            const spec = student.choices[i];
+            const type = student.types[i];
+
+            if (!spec || !type) continue;
+
+            if (seats[spec][typeMap(type)] > 0) {
+                seats[spec][typeMap(type)]--;
 
                 accepted.push({
                     name: student.name,
@@ -218,21 +242,25 @@ function updateResults() {
                     seatType: type
                 });
 
-                if (!minScores[spec] || student.grade < minScores[spec]) {
-                    minScores[spec] = student.grade;
-                }
+                if (!minScores[spec]) minScores[spec] = { general: "-", parallel: "-", health: "-" };
+                minScores[spec][typeMap(type)] = student.grade;
 
-                if (!acceptedBySpec[spec]) acceptedBySpec[spec] = [];
-                acceptedBySpec[spec].push(student);
-
+                assigned = true;
                 break;
             }
         }
     });
 
     fillMin(minScores);
-    fillAcceptedBySpec(acceptedBySpec);
+    fillAcceptedBySpec(accepted);
     fillFinal(accepted);
+}
+
+// تحويل نوع المقعد
+function typeMap(type) {
+    if (type.includes("عام")) return "general";
+    if (type.includes("موازي")) return "parallel";
+    return "health";
 }
 
 // الحد الأدنى
@@ -241,21 +269,26 @@ function fillMin(minScores) {
     table.innerHTML = `
         <tr>
             <th>التخصص</th>
-            <th>الحد الأدنى</th>
+            <th>العام</th>
+            <th>الموازي</th>
+            <th>الصحة</th>
         </tr>
     `;
+
     Object.keys(minScores).forEach(spec => {
         table.innerHTML += `
             <tr>
                 <td>${spec}</td>
-                <td>${minScores[spec]}</td>
+                <td>${minScores[spec].general}</td>
+                <td>${minScores[spec].parallel}</td>
+                <td>${minScores[spec].health}</td>
             </tr>
         `;
     });
 }
 
 // المقبولون حسب كل تخصص
-function fillAcceptedBySpec(data) {
+function fillAcceptedBySpec(list) {
     const table = document.getElementById("acceptedBySpec");
     table.innerHTML = `
         <tr>
@@ -266,18 +299,17 @@ function fillAcceptedBySpec(data) {
             <th>نوع المقعد</th>
         </tr>
     `;
-    Object.keys(data).forEach(spec => {
-        data[spec].forEach(s => {
-            table.innerHTML += `
-                <tr>
-                    <td>${spec}</td>
-                    <td>${s.name}</td>
-                    <td>${s.exam}</td>
-                    <td>${s.grade}</td>
-                    <td>${s.types[0]}</td>
-                </tr>
-            `;
-        });
+
+    list.forEach(s => {
+        table.innerHTML += `
+            <tr>
+                <td>${s.specialty}</td>
+                <td>${s.name}</td>
+                <td>${s.exam}</td>
+                <td>${s.grade}</td>
+                <td>${s.seatType}</td>
+            </tr>
+        `;
     });
 }
 
@@ -293,6 +325,7 @@ function fillFinal(list) {
             <th>نوع المقعد</th>
         </tr>
     `;
+
     list.forEach(s => {
         table.innerHTML += `
             <tr>
