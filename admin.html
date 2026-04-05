@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>لوحة الإدارة</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+
 <style>
 body {
     font-family: "Tajawal", sans-serif;
@@ -21,6 +22,30 @@ body {
 h1 {
     text-align: center;
     color: #0a4c8c;
+    margin-bottom: 25px;
+}
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    background: #0a84ff;
+    color: white;
+    cursor: pointer;
+}
+.delete-btn {
+    background: #d9534f;
+}
+input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+.section-title {
+    margin-top: 30px;
+    font-size: 20px;
+    color: #0a4c8c;
+    font-weight: 700;
 }
 table {
     width: 100%;
@@ -34,33 +59,32 @@ th, td {
     padding: 8px;
     text-align: center;
 }
-button {
-    padding: 10px 15px;
-    margin: 5px;
-    border: none;
+#seatsWrapper {
+    max-height: 300px;
+    overflow-y: scroll;
+    border: 1px solid #d0d7e2;
     border-radius: 8px;
-    background: #0a84ff;
-    color: white;
-    cursor: pointer;
-}
-.section-title {
-    margin-top: 30px;
-    font-size: 20px;
-    color: #0a4c8c;
-    font-weight: 700;
+    padding: 5px;
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
+
     <h1>لوحة الإدارة</h1>
 
-    <button onclick="runDistribution()">تشغيل التوزيع</button>
+    <!-- أزرار التحكم -->
+    <button class="delete-btn" onclick="deleteAllStudents()">حذف جميع الطلاب</button>
+    <button onclick="deleteOneStudent()">حذف طالب معيّن</button>
+    <button onclick="exportExcel()">تصدير النتائج كـ Excel</button>
 
     <!-- جدول المقاعد -->
     <div class="section-title">تعديل المقاعد</div>
-    <table id="seatsTable"></table>
+    <div id="seatsWrapper">
+        <table id="seatsTable"></table>
+    </div>
     <button onclick="saveSeats()">حفظ المقاعد</button>
 
     <!-- الحد الأدنى -->
@@ -100,7 +124,7 @@ button {
 
 <script>
 
-// تحميل المقاعد من seats.json
+// تحميل المقاعد
 function loadSeats() {
     fetch("seats.json")
         .then(r => r.json())
@@ -148,10 +172,32 @@ function saveSeats() {
     });
 
     alert("تم حفظ المقاعد");
+    updateResults();
 }
 
-// تشغيل التوزيع
-function runDistribution() {
+// حذف جميع الطلاب
+function deleteAllStudents() {
+    if (confirm("هل تريد حذف جميع الطلاب؟")) {
+        localStorage.removeItem("students");
+        updateResults();
+    }
+}
+
+// حذف طالب معيّن
+function deleteOneStudent() {
+    const exam = prompt("أدخل الرقم الامتحاني للطالب:");
+    if (!exam) return;
+
+    let students = JSON.parse(localStorage.getItem("students") || "[]");
+    students = students.filter(s => s.exam !== exam);
+
+    localStorage.setItem("students", JSON.stringify(students));
+    alert("تم حذف الطالب");
+    updateResults();
+}
+
+// التوزيع التلقائي
+function updateResults() {
     const students = JSON.parse(localStorage.getItem("students") || "[]");
 
     const accepted = [];
@@ -260,7 +306,20 @@ function fillFinal(list) {
     });
 }
 
+// تصدير Excel
+function exportExcel() {
+    const table = document.getElementById("finalTable").outerHTML;
+    const blob = new Blob([table], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "results.xls";
+    a.click();
+}
+
 loadSeats();
+updateResults();
 
 </script>
 
