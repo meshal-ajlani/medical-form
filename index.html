@@ -126,14 +126,14 @@ function buildChoices() {
 
 buildChoices();
 
-// حفظ الطالب
+// حفظ الطالب (نسخة محسّنة 100%)
 function saveStudent() {
     const name = document.getElementById("name").value.trim();
     const exam = document.getElementById("exam").value.trim();
-    const grade = parseFloat(document.getElementById("grade").value);
+    const grade = Number(document.getElementById("grade").value);
 
     if (!name || !exam || isNaN(grade)) {
-        alert("يرجى تعبئة الاسم والرقم الامتحاني والمعدل");
+        alert("يرجى تعبئة الاسم والرقم الامتحاني والمعدل بشكل صحيح");
         return;
     }
 
