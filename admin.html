@@ -6,65 +6,137 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
 
 <style>
+/* خلفية عامة بطابع طبي */
 body {
     font-family: "Tajawal", sans-serif;
-    background: #f4f6fb;
-    padding: 20px;
-}
-.container {
-    max-width: 1200px;
-    margin: auto;
-    background: #fff;
+    background: linear-gradient(135deg, #e8f5f7 0%, #f4fbfc 100%);
     padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
 }
+
+/* صندوق المحتوى */
+.container {
+    max-width: 1250px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 18px;
+    border: 1px solid #d7e8ea;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+}
+
+/* العنوان */
 h1 {
     text-align: center;
-    color: #0a4c8c;
-    margin-bottom: 25px;
+    color: #0a6fae;
+    margin-bottom: 30px;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
+
+/* الأزرار */
 button {
-    padding: 10px 15px;
-    margin: 5px;
+    padding: 12px 20px;
+    margin: 6px;
     border: none;
-    border-radius: 8px;
-    background: #0a84ff;
+    border-radius: 10px;
+    background: #0a6fae;
     color: white;
     cursor: pointer;
+    font-size: 15px;
+    transition: 0.25s;
+    font-weight: 600;
 }
+button:hover {
+    background: #095e94;
+    transform: translateY(-2px);
+}
+
+/* زر الحذف */
 .delete-btn {
     background: #d9534f;
 }
+.delete-btn:hover {
+    background: #b84441;
+}
+
+/* الحقول */
 input {
     padding: 8px;
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #bcd4d7;
+    width: 100%;
+    transition: 0.2s;
 }
+input:focus {
+    border-color: #0a6fae;
+    box-shadow: 0 0 5px rgba(10,111,174,0.3);
+}
+
+/* عناوين الأقسام */
 .section-title {
-    margin-top: 30px;
-    font-size: 20px;
-    color: #0a4c8c;
-    font-weight: 700;
+    margin-top: 35px;
+    font-size: 22px;
+    color: #0a6fae;
+    font-weight: 800;
+    border-right: 6px solid #0a6fae;
+    padding-right: 12px;
+    margin-bottom: 10px;
 }
+
+/* الجداول */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
 }
-table, th, td {
-    border: 1px solid #d0d7e2;
+
+/* رؤوس الجداول */
+th {
+    background: #dff3f6;
+    color: #0a6fae;
+    font-weight: 700;
+    padding: 12px;
+    font-size: 15px;
+    border-bottom: 2px solid #cfe3e6;
 }
-th, td {
-    padding: 8px;
-    text-align: center;
+
+/* خلايا الجداول */
+td {
+    padding: 10px;
+    background: #ffffff;
+    border-bottom: 1px solid #e6f2f4;
+    font-size: 14px;
 }
+
+/* صفوف متناوبة */
+tr:nth-child(even) td {
+    background: #f7fcfd;
+}
+
+/* صندوق المقاعد */
 #seatsWrapper {
     max-height: 300px;
     overflow-y: scroll;
-    border: 1px solid #d0d7e2;
-    border-radius: 8px;
+    border: 1px solid #cfe3e6;
+    border-radius: 12px;
     padding: 5px;
+    background: #f7fcfd;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
+}
+
+/* تحسين شريط التمرير */
+#seatsWrapper::-webkit-scrollbar {
+    width: 8px;
+}
+#seatsWrapper::-webkit-scrollbar-thumb {
+    background: #0a6fae;
+    border-radius: 10px;
+}
+#seatsWrapper::-webkit-scrollbar-track {
+    background: #e3f2f4;
 }
 </style>
 </head>
@@ -130,8 +202,10 @@ th, td {
     </table>
 
 </div>
+
 <script>
 
+// التخصصات
 const specialties = [
     "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
     "الداخلية الدموية","الداخلية الكلية","الداخلية الرئوية","الداخلية الخمجية",
@@ -144,6 +218,7 @@ const specialties = [
     "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
 ];
 
+// تحميل المقاعد
 function loadSeats() {
     let seats = JSON.parse(localStorage.getItem("seats") || "{}");
 
@@ -176,6 +251,7 @@ function loadSeats() {
     });
 }
 
+// حفظ المقاعد
 function saveSeats() {
     const rows = document.querySelectorAll("#seatsTable tr");
     const seats = {};
@@ -195,6 +271,7 @@ function saveSeats() {
     updateResults();
 }
 
+// حذف جميع الطلاب
 function deleteAllStudents() {
     if (confirm("هل تريد حذف جميع الطلاب؟")) {
         localStorage.removeItem("students");
@@ -202,6 +279,7 @@ function deleteAllStudents() {
     }
 }
 
+// حذف طالب معيّن
 function deleteOneStudent() {
     const exam = prompt("أدخل الرقم الامتحاني للطالب:");
     if (!exam) return;
@@ -214,11 +292,14 @@ function deleteOneStudent() {
     updateResults();
 }
 
+// تحويل نوع المقعد
 function typeMap(type) {
     if (type.includes("عام")) return "general";
     if (type.includes("موازي")) return "parallel";
     return "health";
 }
+
+// التوزيع النهائي الصحيح
 function updateResults() {
     const students = JSON.parse(localStorage.getItem("students") || "[]");
     const seatsOriginal = JSON.parse(localStorage.getItem("seats") || "{}");
@@ -229,6 +310,7 @@ function updateResults() {
     const rejected = [];
     const minScores = {};
 
+    // ترتيب الطلاب حسب المعدل
     students.sort((a, b) => b.grade - a.grade);
 
     students.forEach(student => {
@@ -280,6 +362,7 @@ function updateResults() {
     fillRejected(rejected);
 }
 
+// الحد الأدنى
 function fillMin(minScores) {
     const table = document.getElementById("minTable");
     table.innerHTML = `
@@ -303,6 +386,7 @@ function fillMin(minScores) {
     });
 }
 
+// المقبولون حسب التخصص
 function fillAcceptedBySpec(list) {
     const table = document.getElementById("acceptedBySpec");
     table.innerHTML = `
@@ -330,6 +414,7 @@ function fillAcceptedBySpec(list) {
     });
 }
 
+// الجدول الشامل
 function fillFinal(list) {
     const table = document.getElementById("finalTable");
     table.innerHTML = `
@@ -357,6 +442,7 @@ function fillFinal(list) {
     });
 }
 
+// غير المقبولين
 function fillRejected(list) {
     const table = document.getElementById("rejectedTable");
     table.innerHTML = `
@@ -380,11 +466,15 @@ function fillRejected(list) {
     });
 }
 
+// تصدير Excel (يدعم العربي)
 function exportExcel() {
     const table = document.getElementById("finalTable").outerHTML;
-    const blob = new Blob([table], { type: "application/vnd.ms-excel" });
-    const url = URL.createObjectURL(blob);
+    const utf8Bom = "\uFEFF";
+    const blob = new Blob([utf8Bom + table], {
+        type: "application/vnd.ms-excel;charset=utf-8"
+    });
 
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "results.xls";
