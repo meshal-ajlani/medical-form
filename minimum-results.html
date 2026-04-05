@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>نتائج الحد الأدنى للمقاعد - مفاضلة الطب</title>
+  <title>الحد الأدنى ومقاعد متبقية - مفاضلة الطب</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
 
@@ -18,7 +18,7 @@
       margin:0;font-family:'Almarai',system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#eef9fb,#f6fbfd);color:#123;padding:20px;
       -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
     }
-    .container{max-width:1100px;margin:18px auto;display:grid;gap:16px}
+    .container{max-width:1200px;margin:18px auto;display:grid;gap:16px}
     .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid rgba(10,30,40,0.03)}
     h1{margin:0 0 6px;color:var(--accent);font-size:20px}
     .lead{color:var(--muted);font-size:14px;margin-bottom:8px}
@@ -32,22 +32,29 @@
     thead th.type-a{background:var(--col-a)}
     thead th.type-b{background:var(--col-b)}
     thead th.type-c{background:var(--col-c)}
-    tbody td{padding:12px 10px;border-bottom:1px solid #f1f6f8;font-size:15px}
+    tbody td{padding:10px;border-bottom:1px solid #f1f6f8;font-size:15px;vertical-align:middle}
     tbody tr:hover{background:rgba(11,107,143,0.03)}
     .spec{font-weight:600}
     .muted{color:var(--muted)}
     .empty{padding:18px;text-align:center;color:var(--muted)}
     .updated{font-size:13px;color:var(--muted);margin-left:8px}
+    .small-note{font-size:13px;color:var(--muted);margin-top:8px}
+    .ok{color:#155724;background:#d4edda;padding:6px 8px;border-radius:8px;display:inline-block}
+    .warn{color:#856404;background:#fff3cd;padding:6px 8px;border-radius:8px;display:inline-block}
+    @media (max-width:980px){
+      .table-wrap{font-size:14px}
+      thead th, tbody td{padding:8px}
+    }
     @media (max-width:720px){
-      thead th, tbody td{padding:10px 8px;font-size:14px}
+      .responsive-hide{display:none}
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
-      <h1>الحد الأدنى للمعدل لكل تخصص</h1>
-      <p class="lead">هذه الصفحة تعرض الحد الأدنى للمعدل (النتيجة الأدنى المقبولة) لكل تخصص ولكل نوع مقعد — عام، موازي، وزارة. يتم التحديث تلقائياً عند نشر النتائج.</p>
+      <h1>الحد الأدنى ومقاعد متبقية لكل تخصص</h1>
+      <p class="lead">تعرض هذه الصفحة الحد الأدنى الفعلي (عندما تكتمل المقاعد) وعدد المقاعد المتبقية لكل تخصص ونوع (عام، موازي، وزارة). يتم التحديث تلقائياً عند نشر النتائج أو تعديل المقاعد.</p>
 
       <div class="controls">
         <button id="refreshBtn" class="ghost">تحديث الآن</button>
@@ -55,26 +62,34 @@
         <div id="lastUpdated" class="badge">آخر تحديث: -</div>
       </div>
 
+      <div class="small-note">ملاحظة: **الحد الأدنى يظهر فقط بعد امتلاء المقاعد** لذلك إن كانت الخانة فارغة أو "-" فهذا يعني أن المقاعد لم تكتمل بعد.</div>
+
       <div class="table-wrap" id="tableWrap" aria-live="polite">
-        <table id="minScoresTable" role="table" aria-label="الحد الأدنى للمعدل">
+        <table id="minScoresTable" role="table" aria-label="الحد الأدنى والمقاعد المتبقية">
           <thead>
             <tr>
-              <th style="min-width:260px">التخصص</th>
-              <th class="type-a">عام</th>
-              <th class="type-b">موازي</th>
-              <th class="type-c">وزارة</th>
+              <th style="min-width:220px">التخصص</th>
+
+              <th class="type-a">مقاعد متبقية<br><small class="muted responsive-hide">عام</small></th>
+              <th class="type-a">الحد الأدنى<br><small class="muted responsive-hide">عام</small></th>
+
+              <th class="type-b">مقاعد متبقية<br><small class="muted responsive-hide">موازي</small></th>
+              <th class="type-b">الحد الأدنى<br><small class="muted responsive-hide">موازي</small></th>
+
+              <th class="type-c">مقاعد متبقية<br><small class="muted responsive-hide">وزارة</small></th>
+              <th class="type-c">الحد الأدنى<br><small class="muted responsive-hide">وزارة</small></th>
             </tr>
           </thead>
           <tbody id="minScoresTbody">
-            <tr><td colspan="4" class="empty">جارٍ تحميل النتائج...</td></tr>
+            <tr><td colspan="7" class="empty">جارٍ تحميل البيانات...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <div class="card">
-      <h1>ملاحظات</h1>
-      <p class="lead">القيم المعروضة تمثل أدنى معدل تم قبوله فعلياً في كل تخصص ونوع. إذا كانت القيمة "-" فهذا يعني أنه لم يتم قبول أي طالب لذلك النوع أو لم تُنشر النتائج بعد.</p>
+      <h1>ملاحظات للمستخدمين</h1>
+      <p class="lead">القيم المعروضة تحت "الحد الأدنى" هي أدنى معدل تم قبوله فعلياً فقط بعد امتلاء المقاعد لذلك تعتبر نهائية. أما "مقاعد متبقية" فتُظهر عدد المقاعد المتبقية حتى تكتمل عملية القبول.</p>
     </div>
   </div>
 
@@ -98,7 +113,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app, firebaseConfig.databaseURL);
 
-    // نفس قائمة التخصصات المستخدمة في النظام لضمان الترتيب
+    // ترتيب التخصصات كما في النظام
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -114,35 +129,108 @@
     const refreshBtn = document.getElementById('refreshBtn');
     const printBtn = document.getElementById('printBtn');
 
-    // تحويل قيمة إلى عرض مناسب
+    // مساعدة لعرض القيم
     function displayValue(v){
       if (v === null || v === undefined) return '-';
       if (v === '') return '-';
       return String(v);
     }
 
-    // بناء صفوف الجدول حسب التخصصات
-    function renderEmpty(){
-      tbody.innerHTML = `<tr><td colspan="4" class="empty">لا توجد نتائج منشورة حالياً</td></tr>`;
-      lastUpdatedEl.textContent = 'آخر تحديث: -';
+    // دالة لحساب مقاعد متبقية وحساب الحد الأدنى الظاهر فقط عند الامتلاء
+    function computeDisplay(seatsObj, acceptedObj, minScoresFromResults){
+      // seatsObj: { spec: { عام: n, موازي: m, وزارة: k }, ... }
+      // acceptedObj: { id: { assigned: spec, assignedType: type, score }, ... }
+      // minScoresFromResults: optional object from results.minScores
+
+      // حساب عدد المقبولين لكل تخصص ونوع
+      const acceptedCount = {};
+      Object.values(acceptedObj || {}).forEach(a => {
+        const spec = a.assigned;
+        const typ = a.assignedType;
+        if (!spec || !typ) return;
+        acceptedCount[spec] = acceptedCount[spec] || { 'عام':0, 'موازي':0, 'وزارة':0 };
+        acceptedCount[spec][typ] = (acceptedCount[spec][typ] || 0) + 1;
+      });
+
+      // بناء جدول عرض
+      const table = {};
+      specialties.forEach(spec => {
+        table[spec] = { 'عام': { seatsTotal:0, accepted:0, left:0, min: null },
+                        'موازي': { seatsTotal:0, accepted:0, left:0, min: null },
+                        'وزارة': { seatsTotal:0, accepted:0, left:0, min: null } };
+        const seatRow = seatsObj && seatsObj[spec] ? seatsObj[spec] : {};
+        types.forEach(t => {
+          const total = Number(seatRow[t] || 0);
+          const acc = (acceptedCount[spec] && acceptedCount[spec][t]) ? acceptedCount[spec][t] : 0;
+          let left = total - acc;
+          if (left < 0) left = 0;
+          table[spec][t].seatsTotal = total;
+          table[spec][t].accepted = acc;
+          table[spec][t].left = left;
+          // إذا امتلأت المقاعد (left === 0) نعرض الحد الأدنى من النتائج إن وُجد
+          if (left === 0) {
+            // أفضل مصدر: minScoresFromResults إذا موجود، وإلا نححسبه من acceptedObj
+            const ms = (minScoresFromResults && minScoresFromResults[spec] && minScoresFromResults[spec][t] !== undefined) ? minScoresFromResults[spec][t] : null;
+            table[spec][t].min = ms !== null ? ms : null;
+          } else {
+            table[spec][t].min = null; // لم تكتمل المقاعد بعد
+          }
+        });
+      });
+
+      // إذا minScoresFromResults غير موجود، نحسب من acceptedObj للأماكن المكتملة
+      if (!minScoresFromResults) {
+        // حساب الحد الأدنى من acceptedObj
+        const mins = {};
+        Object.values(acceptedObj || {}).forEach(a => {
+          const spec = a.assigned;
+          const typ = a.assignedType;
+          const score = Number(a.score);
+          if (!spec || !typ || isNaN(score)) return;
+          mins[spec] = mins[spec] || { 'عام': null, 'موازي': null, 'وزارة': null };
+          const cur = mins[spec][typ];
+          if (cur === null || score < cur) mins[spec][typ] = score;
+        });
+        // ضع القيم المحسوبة فقط إذا المقاعد مكتملة
+        specialties.forEach(spec => {
+          types.forEach(t => {
+            if (table[spec][t].left === 0) {
+              table[spec][t].min = (mins[spec] && mins[spec][t] !== undefined) ? mins[spec][t] : table[spec][t].min;
+            }
+          });
+        });
+      }
+
+      return table;
     }
 
-    function renderTable(minScores, generatedAt){
-      // minScores: { "التخصص": { "عام": value, "موازي": value, "وزارة": value }, ... }
+    // عرض الجدول في DOM
+    function renderTable(displayTable, generatedAt){
       let html = '';
       specialties.forEach(spec => {
-        const row = minScores && minScores[spec] ? minScores[spec] : {};
-        const a = displayValue(row['عام'] ?? null);
-        const b = displayValue(row['موازي'] ?? null);
-        const c = displayValue(row['وزارة'] ?? null);
+        const row = displayTable[spec];
+        const aLeft = displayValue(row['عام'].left);
+        const aMin = row['عام'].min === null ? '-' : displayValue(row['عام'].min);
+        const bLeft = displayValue(row['موازي'].left);
+        const bMin = row['موازي'].min === null ? '-' : displayValue(row['موازي'].min);
+        const cLeft = displayValue(row['وزارة'].left);
+        const cMin = row['وزارة'].min === null ? '-' : displayValue(row['وزارة'].min);
+
         html += `<tr>
           <td class="spec">${escapeHtml(spec)}</td>
-          <td class="type-a">${escapeHtml(a)}</td>
-          <td class="type-b">${escapeHtml(b)}</td>
-          <td class="type-c">${escapeHtml(c)}</td>
+
+          <td class="type-a">${escapeHtml(aLeft)}</td>
+          <td class="type-a">${escapeHtml(aMin)}</td>
+
+          <td class="type-b">${escapeHtml(bLeft)}</td>
+          <td class="type-b">${escapeHtml(bMin)}</td>
+
+          <td class="type-c">${escapeHtml(cLeft)}</td>
+          <td class="type-c">${escapeHtml(cMin)}</td>
         </tr>`;
       });
       tbody.innerHTML = html;
+
       if (generatedAt) {
         const d = new Date(Number(generatedAt));
         if (!isNaN(d)) lastUpdatedEl.textContent = 'آخر تحديث: ' + d.toLocaleString();
@@ -152,84 +240,67 @@
       }
     }
 
-    // استمع للتغييرات الحية على /results/minScores أو على /results
-    const resultsRef = ref(db, 'results');
-    onValue(resultsRef, (snap) => {
-      if (!snap.exists()) {
-        renderEmpty();
-        return;
-      }
-      const data = snap.val();
-      // بعض النسخ تخزن minScores تحت results.minScores
-      const minScores = data.minScores || data.min_scores || null;
-      const generatedAt = data.generatedAt || data.generated_at || data.generated || null;
-      if (!minScores) {
-        // إذا لم توجد minScores، حاول حسابها من accepted إن وُجد
-        if (data.accepted) {
-          const computed = computeMinScoresFromAccepted(data.accepted);
-          renderTable(computed, generatedAt);
-        } else {
-          renderEmpty();
-        }
-      } else {
-        renderTable(minScores, generatedAt);
-      }
-    }, (err) => {
-      tbody.innerHTML = `<tr><td colspan="4" class="empty">خطأ عند جلب النتائج. افتح Console للمزيد.</td></tr>`;
-      console.error('onValue results error', err);
-    });
-
-    // زر التحديث اليدوي (يجلب snapshot مرة واحدة)
-    refreshBtn.addEventListener('click', async () => {
+    // جلب البيانات من /seats و /results (مباشر) وحساب العرض
+    async function refreshOnce(){
       try {
         refreshBtn.disabled = true;
         refreshBtn.textContent = 'جارٍ التحديث...';
-        const snap = await get(resultsRef);
-        if (!snap.exists()) {
-          renderEmpty();
-          refreshBtn.textContent = 'تحديث الآن';
-          refreshBtn.disabled = false;
-          return;
-        }
-        const data = snap.val();
-        const minScores = data.minScores || data.min_scores || null;
-        const generatedAt = data.generatedAt || data.generated_at || data.generated || null;
-        if (!minScores && data.accepted) {
-          const computed = computeMinScoresFromAccepted(data.accepted);
-          renderTable(computed, generatedAt);
-        } else if (minScores) {
-          renderTable(minScores, generatedAt);
-        } else {
-          renderEmpty();
-        }
+
+        const seatsSnap = await get(ref(db, 'seats'));
+        const resultsSnap = await get(ref(db, 'results'));
+
+        const seatsObj = seatsSnap.exists() ? seatsSnap.val() : {};
+        const resultsObj = resultsSnap.exists() ? resultsSnap.val() : null;
+
+        const acceptedObj = resultsObj && resultsObj.accepted ? resultsObj.accepted : {};
+        const minScoresFromResults = resultsObj && resultsObj.minScores ? resultsObj.minScores : null;
+        const generatedAt = resultsObj && resultsObj.generatedAt ? resultsObj.generatedAt : (resultsObj && resultsObj.generated ? resultsObj.generated : null);
+
+        const displayTable = computeDisplay(seatsObj, acceptedObj, minScoresFromResults);
+        renderTable(displayTable, generatedAt);
+
       } catch (err) {
-        console.error('refresh error', err);
-        tbody.innerHTML = `<tr><td colspan="4" class="empty">فشل التحديث. افتح Console للمزيد.</td></tr>`;
+        console.error('refreshOnce error', err);
+        tbody.innerHTML = `<tr><td colspan="7" class="empty">فشل جلب البيانات. افتح Console للمزيد.</td></tr>`;
       } finally {
-        refreshBtn.textContent = 'تحديث الآن';
         refreshBtn.disabled = false;
+        refreshBtn.textContent = 'تحديث الآن';
       }
+    }
+
+    // استمع للتغييرات الحية على /seats و /results لتحديث العرض تلقائياً
+    const seatsRef = ref(db, 'seats');
+    const resultsRef = ref(db, 'results');
+
+    // عند أي تغيير في المقاعد أو النتائج نعيد الحساب
+    onValue(seatsRef, async () => {
+      await refreshOnce();
     });
+    onValue(resultsRef, async () => {
+      await refreshOnce();
+    });
+
+    // زر التحديث اليدوي
+    refreshBtn.addEventListener('click', refreshOnce);
 
     // زر الطباعة
     printBtn.addEventListener('click', () => window.print());
 
-    // إذا لم تُنشر minScores، نحسبها من accepted
-    function computeMinScoresFromAccepted(acceptedObj){
-      // acceptedObj: { id: { assigned: spec, assignedType: type, score: number, ... }, ... }
-      const result = {};
-      specialties.forEach(s => { result[s] = { 'عام': null, 'موازي': null, 'وزارة': null }; });
-      Object.values(acceptedObj || {}).forEach(a => {
-        const spec = a.assigned;
-        const typ = a.assignedType;
-        const score = Number(a.score);
-        if (!spec || !typ || isNaN(score)) return;
-        if (!result[spec]) result[spec] = { 'عام': null, 'موازي': null, 'وزارة': null };
-        const cur = result[spec][typ];
-        if (cur === null || score < cur) result[spec][typ] = score;
+    // تحميل أولي سريع
+    (async function init(){
+      // عرض صفوف فارغة للحفاظ على ترتيب سريع
+      let initial = '';
+      specialties.forEach(spec => {
+        initial += `<tr>
+          <td class="spec">${escapeHtml(spec)}</td>
+          <td class="type-a">-</td><td class="type-a">-</td>
+          <td class="type-b">-</td><td class="type-b">-</td>
+          <td class="type-c">-</td><td class="type-c">-</td>
+        </tr>`;
       });
-      return result;
-    }
+      tbody.innerHTML = initial;
+      await refreshOnce();
+    })();
 
     // دالة مساعدة للهروب من XSS
     function escapeHtml(text){
@@ -240,42 +311,6 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
-    }
-
-    // تحميل أولي (سيتم تحديث تلقائياً عبر onValue)
-    (async function init(){
-      buildInitialTable();
-      try {
-        // محاولة تحميل snapshot سريع لعرض شيء فوري
-        const snap = await get(resultsRef);
-        if (snap.exists()){
-          const data = snap.val();
-          const minScores = data.minScores || data.min_scores || null;
-          const generatedAt = data.generatedAt || data.generated_at || data.generated || null;
-          if (minScores) renderTable(minScores, generatedAt);
-          else if (data.accepted) renderTable(computeMinScoresFromAccepted(data.accepted), generatedAt);
-          else renderEmpty();
-        } else {
-          renderEmpty();
-        }
-      } catch (err) {
-        console.error('init load error', err);
-        renderEmpty();
-      }
-    })();
-
-    function buildInitialTable(){
-      // عرض صفوف فارغة بسرعة للحفاظ على ترتيب التخصصات
-      let html = '';
-      specialties.forEach(spec => {
-        html += `<tr>
-          <td class="spec">${escapeHtml(spec)}</td>
-          <td class="type-a">-</td>
-          <td class="type-b">-</td>
-          <td class="type-c">-</td>
-        </tr>`;
-      });
-      tbody.innerHTML = html;
     }
   </script>
 </body>
