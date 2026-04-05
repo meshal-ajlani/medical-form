@@ -1,158 +1,63 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-<meta charset="UTF-8">
-<title>تسجيل الطلاب</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-<style>
-body {
-    font-family: "Tajawal", sans-serif;
-    background: #eef7fa;
-    padding: 20px;
-}
-.container {
-    max-width: 750px;
-    margin: auto;
-    background: #fff;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-}
-h1 {
-    text-align: center;
-    color: #0a6fae;
-    margin-bottom: 25px;
-}
-label {
-    font-weight: 600;
-    color: #0a6fae;
-}
-input, select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 6px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: 1px solid #bcd4d7;
-}
-button {
-    width: 100%;
-    padding: 12px;
-    background: #0a6fae;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    cursor: pointer;
-}
-button:hover {
-    background: #095e94;
-}
-.row {
-    display: flex;
-    gap: 10px;
-}
-.row select {
-    flex: 1;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Medical Form</title>
 </head>
 
 <body>
 
-<div class="container">
+    <h2>تجربة إرسال البيانات إلى Firebase</h2>
 
-    <h1>تسجيل الطلاب</h1>
+    <input id="name" placeholder="الاسم">
+    <br><br>
 
-    <label>الاسم الكامل</label>
-    <input id="name">
+    <input id="exam" placeholder="الرقم الامتحاني">
+    <br><br>
 
-    <label>الرقم الامتحاني</label>
-    <input id="exam">
+    <input id="score" placeholder="المعدل">
+    <br><br>
 
-    <label>المعدل</label>
-    <input id="grade" type="number" step="0.01">
+    <button onclick="submitForm()">إرسال</button>
 
-    <h2 style="color:#0a6fae; margin-top:20px;">الرغبات (10 رغبات)</h2>
+    <script>
+        function submitForm() {
+            const name = document.getElementById("name").value;
+            const exam = document.getElementById("exam").value;
+            const score = document.getElementById("score").value;
 
-    <div id="choicesContainer"></div>
+            db.ref("students/" + exam).set({
+                name: name,
+                exam: exam,
+                score: score
+            }).then(() => {
+                alert("تم الإرسال بنجاح");
+            });
+        }
+    </script>
 
-    <button onclick="submitForm()">تسجيل</button>
+    <!-- Firebase App -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 
-</div>
+    <!-- Firebase Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-<script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyA9PmgtkNuY25DEy6_G30tryB-d4s3l_2g",
+        authDomain: "medical-form-80f5a.firebaseapp.com",
+        databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app/",
+        projectId: "medical-form-80f5a",
+        storageBucket: "medical-form-80f5a.firebasestorage.app",
+        messagingSenderId: "662141312032",
+        appId: "1:662141312032:web:14b50dd58662927952b045",
+        measurementId: "G-1GHFZF8QRS"
+      };
 
-// قائمة التخصصات
-const specialties = [
-    "الداخلية العامة",
-    "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
-    "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية",
-    "الطب النفسي","العينية","الأذنية","الجلدية",
-    "طب الأطفال","النسائية والتوليد",
-    "الجراحة العامة","الجراحة العظمية","الجراحة البولية","الجراحة الصدرية","الجراحة العصبية",
-    "الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية","جراحة الأطفال",
-    "الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي",
-    "طب الأورام","طب الأسرة","الطب الشرعي","طب الطوارئ","التخدير والإنعاش",
-    "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
-];
+      firebase.initializeApp(firebaseConfig);
 
-// إنشاء 10 رغبات
-function createChoiceRow(num) {
-    let options = specialties.map(s => `<option>${s}</option>`).join("");
-
-    return `
-        <label>الرغبة رقم ${num}</label>
-        <div class="row">
-            <select id="choice${num}">
-                <option value="">اختر التخصص</option>
-                ${options}
-            </select>
-
-            <select id="type${num}">
-                <option value="">نوع المقعد</option>
-                <option>دراسات عليا عام</option>
-                <option>دراسات عليا موازي</option>
-                <option>وزارة الصحة</option>
-            </select>
-        </div>
-    `;
-}
-
-document.getElementById("choicesContainer").innerHTML =
-    Array.from({length: 10}, (_, i) => createChoiceRow(i+1)).join("");
-
-// حفظ الطالب
-function submitForm() {
-    const name = document.getElementById("name").value;
-    const exam = document.getElementById("exam").value;
-    const grade = parseFloat(document.getElementById("grade").value);
-
-    const choices = [];
-    const types = [];
-
-    for (let i = 1; i <= 10; i++) {
-        choices.push(document.getElementById("choice"+i).value);
-        types.push(document.getElementById("type"+i).value);
-    }
-
-    let students = JSON.parse(localStorage.getItem("students") || "[]");
-
-    students.push({
-        name,
-        exam,
-        grade,
-        choices,
-        types
-    });
-
-    localStorage.setItem("students", JSON.stringify(students));
-
-    alert("تم تسجيل الطالب بنجاح");
-}
-
-</script>
+      const db = firebase.database();
+    </script>
 
 </body>
 </html>
