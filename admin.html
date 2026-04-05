@@ -50,38 +50,13 @@
       .seat-input{width:64px}
     }
 
-    /* شاشة القفل (modal) */
-    .lock-overlay{
-      position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:9999;
-    }
-    .lock-box{
-      width:360px;background:#fff;border-radius:12px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;
-      font-family:'Almarai',sans-serif;
-    }
-    .lock-box h2{margin:0 0 8px;color:#0b6b8f}
-    .lock-box p{margin:0 0 14px;color:var(--muted);font-size:14px}
-    .lock-box input{
-      width:100%;padding:12px;border-radius:10px;border:1px solid #e6f3f6;margin-bottom:12px;font-size:15px;
-    }
-    .lock-box button{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(180deg,var(--accent),#0f8aa6);color:#fff;font-weight:700}
-    .lock-footer{margin-top:10px;font-size:13px;color:#888}
-    .lock-error{color:#b00020;margin-top:8px;font-size:13px}
+    .list{max-height:360px;overflow:auto;border:1px solid #eef5f7;padding:10px;border-radius:8px}
+    .log{font-family:monospace;font-size:13px;color:#444;white-space:pre-wrap}
+    .small-muted{color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
-  <!-- شاشة القفل: تظهر قبل تحميل الواجهة -->
-  <div id="lockOverlay" class="lock-overlay" aria-hidden="false">
-    <div class="lock-box" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
-      <h2 id="lockTitle">دخول لوحة الإدارة</h2>
-      <p>أدخل كلمة المرور للوصول إلى لوحة الإدارة</p>
-      <input id="adminPasswordInput" type="password" placeholder="كلمة المرور" autocomplete="current-password" />
-      <button id="unlockBtn" type="button">دخول</button>
-      <div id="lockError" class="lock-error" style="display:none"></div>
-      <div class="lock-footer">إذا نسيت كلمة المرور عدّل المتغير <code>ADMIN_PASSWORD</code> في ملف admin.html</div>
-    </div>
-  </div>
-
-  <div class="wrap" id="app" style="display:none">
+  <div class="wrap" id="app">
     <div class="card">
       <h1>لوحة الإدارة - تحديد المقاعد</h1>
       <p class="small">الجدول أدناه يوضّح بوضوح أي عمود يمثل <strong>عام</strong> أو <strong>موازي</strong> أو <strong>وزارة</strong>. عدّل القيم ثم اضغط حفظ.</p>
@@ -139,23 +114,13 @@
 
     <div class="card">
       <h3>سجل التشغيل (Console مختصر)</h3>
-      <div id="miniLog" class="list" style="font-family:monospace;font-size:13px;color:#444;white-space:pre-wrap">لا توجد سجلات بعد.</div>
+      <div id="miniLog" class="list log">لا توجد سجلات بعد.</div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, get, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-    // ==========================
-    // إعداد كلمة المرور (بسيط - على مستوى العميل)
-    // ==========================
-    // ملاحظة أمنية: هذا الحماية على مستوى الواجهة فقط (client-side).
-    // لا تعتمد عليها لحماية حساسة. لتأمين حقيقي استخدم مصادقة Firebase أو Cloud Functions.
-    //
-    // لتغيير كلمة المرور: استبدل قيمة ADMIN_PASSWORD بالنص الذي تريده.
-    // مثال: const ADMIN_PASSWORD = 'MyStrongPass2026';
-    const ADMIN_PASSWORD = 'Meshal2022'; // <-- تم تعيين كلمة المرور المطلوبة
 
     // ==========================
     // إعداد Firebase
@@ -187,12 +152,6 @@
     const validTypes = types.slice();
 
     // عناصر DOM
-    const lockOverlay = document.getElementById('lockOverlay');
-    const adminPasswordInput = document.getElementById('adminPasswordInput');
-    const unlockBtn = document.getElementById('unlockBtn');
-    const lockError = document.getElementById('lockError');
-    const appDiv = document.getElementById('app');
-
     const seatsTbody = document.getElementById('seatsTbody');
     const saveSeatsBtn = document.getElementById('saveSeatsBtn');
     const fixDataBtn = document.getElementById('fixDataBtn');
@@ -214,39 +173,6 @@
     function setStatus(text, color){
       statusBadge.textContent = text;
       statusBadge.style.background = color || '';
-    }
-
-    // ---------- قفل الواجهة: تحقق كلمة المرور ----------
-    function unlockIfPasswordCorrect(input){
-      if (input === ADMIN_PASSWORD) {
-        lockOverlay.style.display = 'none';
-        appDiv.style.display = 'block';
-        lockError.style.display = 'none';
-        logMini('تم تسجيل الدخول إلى لوحة الإدارة.');
-        // بعد فتح الواجهة نبدأ تحميل البيانات
-        initAfterAuth();
-      } else {
-        lockError.style.display = 'block';
-        lockError.textContent = 'كلمة المرور غير صحيحة. حاول مرة أخرى.';
-        adminPasswordInput.value = '';
-      }
-    }
-
-    unlockBtn.addEventListener('click', () => {
-      unlockIfPasswordCorrect(adminPasswordInput.value);
-    });
-    adminPasswordInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') unlockIfPasswordCorrect(adminPasswordInput.value);
-    });
-
-    // لمنع الوصول للـ DOM قبل المصادقة: إخفاء التطبيق افتراضياً (appDiv display none)
-    // initAfterAuth() تُستدعى فقط بعد المصادقة الناجحة
-    function initAfterAuth(){
-      buildSeatsRows();
-      loadSeats();
-      loadStudents();
-      loadResults();
-      attachRealtimeListeners();
     }
 
     // ---------- بناء صفوف الجدول ديناميكياً ----------
@@ -371,7 +297,7 @@
     function renderStudentsTable(data){
       const entries = Object.entries(data || {});
       if (entries.length === 0) {
-        studentsTable.innerHTML = '<div class="small muted">لا يوجد طلاب</div>';
+        studentsTable.innerHTML = '<div class="small-muted">لا يوجد طلاب</div>';
         return;
       }
       const rows = entries.map(([id, s])=>{
@@ -623,17 +549,17 @@
     }
 
     function renderResultsEmpty(){
-      acceptedList.innerHTML = '<div class="small muted">لا توجد نتائج</div>';
-      rejectedList.innerHTML = '<div class="small muted">لا توجد نتائج</div>';
-      minScoresTable.innerHTML = '<div class="small muted">لا توجد نتائج</div>';
+      acceptedList.innerHTML = '<div class="small-muted">لا توجد نتائج</div>';
+      rejectedList.innerHTML = '<div class="small-muted">لا توجد نتائج</div>';
+      minScoresTable.innerHTML = '<div class="small-muted">لا توجد نتائج</div>';
     }
 
     function renderResults(data){
       const acc = Object.values(data.accepted || {});
       const rej = Object.values(data.rejected || {});
 
-      acceptedList.innerHTML = acc.length ? acc.map(a=>`<div><strong>${escapeHtml(a.name)}</strong> — ${a.score} — ${escapeHtml(a.assigned)} (${escapeHtml(a.assignedType)})</div>`).join('') : '<div class="small muted">لا يوجد مقبولون</div>';
-      rejectedList.innerHTML = rej.length ? rej.map(r=>`<div>${escapeHtml(r.name)} — ${r.score}</div>`).join('') : '<div class="small muted">لا يوجد مرفوضون</div>';
+      acceptedList.innerHTML = acc.length ? acc.map(a=>`<div><strong>${escapeHtml(a.name)}</strong> — ${a.score} — ${escapeHtml(a.assigned)} (${escapeHtml(a.assignedType)})</div>`).join('') : '<div class="small-muted">لا يوجد مقبولون</div>';
+      rejectedList.innerHTML = rej.length ? rej.map(r=>`<div>${escapeHtml(r.name)} — ${r.score}</div>`).join('') : '<div class="small-muted">لا يوجد مرفوضون</div>';
 
       const minScores = data.minScores || {};
       let html = '<table style="width:100%;border-collapse:collapse"><thead><tr><th>التخصص</th>';
@@ -728,18 +654,20 @@
       return null;
     }
 
-    // ---------- تحميل أولي بعد المصادقة ----------
-    async function loadSeats(){ /* تم تعريف أعلاه */ }
-    async function loadStudents(){ /* تم تعريف أعلاه */ }
-    async function loadResults(){ /* تم تعريف أعلاه */ }
+    // ---------- تحميل أولي ----------
+    (async function init(){
+      buildSeatsRows();
+      await loadSeats();
+      await loadStudents();
+      await loadResults();
+      attachRealtimeListeners();
+    })();
 
     // ---------- دالة مساعدة للهروب من XSS عند عرض نصوص المستخدم ----------
     function escapeHtml(text){
       if (text === undefined || text === null) return '';
       return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
     }
-
-    // لا حاجة لاستدعاء أي شيء هنا؛ التهيئة تتم بعد المصادقة في initAfterAuth()
   </script>
 </body>
 </html>
