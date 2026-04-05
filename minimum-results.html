@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>نتائج الحد الأدنى للمقاعد - مفاضلة الطب</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#f6fbfd; --card:#fff; --accent:#0b6b8f; --muted:#6b7c86;
+      --col-a:#e8f7f9; --col-b:#fff7e6; --col-c:#f7eefc;
+      --radius:12px; --shadow:0 10px 30px rgba(10,30,40,0.06);
+    }
+    html,body{height:100%}
+    body{
+      margin:0;font-family:'Almarai',system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#eef9fb,#f6fbfd);color:#123;padding:20px;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    }
+    .container{max-width:1100px;margin:18px auto;display:grid;gap:16px}
+    .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid rgba(10,30,40,0.03)}
+    h1{margin:0 0 6px;color:var(--accent);font-size:20px}
+    .lead{color:var(--muted);font-size:14px;margin-bottom:8px}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+    button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
+    button.ghost{background:#fff;border:1px solid #e6f3f6;color:var(--accent)}
+    .badge{background:#eef9fb;padding:6px 10px;border-radius:10px;color:var(--muted);font-weight:600}
+    .table-wrap{overflow:auto;border-radius:10px;border:1px solid #eef5f7;margin-top:12px}
+    table{width:100%;border-collapse:collapse}
+    thead th{position:sticky;top:0;background:#fff;padding:12px 10px;text-align:left;border-bottom:2px solid #eef5f7;font-weight:700}
+    thead th.type-a{background:var(--col-a)}
+    thead th.type-b{background:var(--col-b)}
+    thead th.type-c{background:var(--col-c)}
+    tbody td{padding:12px 10px;border-bottom:1px solid #f1f6f8;font-size:15px}
+    tbody tr:hover{background:rgba(11,107,143,0.03)}
+    .spec{font-weight:600}
+    .muted{color:var(--muted)}
+    .empty{padding:18px;text-align:center;color:var(--muted)}
+    .updated{font-size:13px;color:var(--muted);margin-left:8px}
+    @media (max-width:720px){
+      thead th, tbody td{padding:10px 8px;font-size:14px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>الحد الأدنى للمعدل لكل تخصص</h1>
+      <p class="lead">هذه الصفحة تعرض الحد الأدنى للمعدل (النتيجة الأدنى المقبولة) لكل تخصص ولكل نوع مقعد — عام، موازي، وزارة. يتم التحديث تلقائياً عند نشر النتائج.</p>
+
+      <div class="controls">
+        <button id="refreshBtn" class="ghost">تحديث الآن</button>
+        <button id="printBtn">طباعة الصفحة</button>
+        <div id="lastUpdated" class="badge">آخر تحديث: -</div>
+      </div>
+
+      <div class="table-wrap" id="tableWrap" aria-live="polite">
+        <table id="minScoresTable" role="table" aria-label="الحد الأدنى للمعدل">
+          <thead>
+            <tr>
+              <th style="min-width:260px">التخصص</th>
+              <th class="type-a">عام</th>
+              <th class="type-b">موازي</th>
+              <th class="type-c">وزارة</th>
+            </tr>
+          </thead>
+          <tbody id="minScoresTbody">
+            <tr><td colspan="4" class="empty">جارٍ تحميل النتائج...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h1>ملاحظات</h1>
+      <p class="lead">القيم المعروضة تمثل أدنى معدل تم قبوله فعلياً في كل تخصص ونوع. إذا كانت القيمة "-" فهذا يعني أنه لم يتم قبول أي طالب لذلك النوع أو لم تُنشر النتائج بعد.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // ======= إعدادات Firebase (تأكد أنها تطابق مشروعك) =======
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKjw37YQewKBNh_Zl9Mnh1gvy37HZiNF0",
+      authDomain: "medical-form2025.firebaseapp.com",
+      databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "medical-form2025",
+      storageBucket: "medical-form2025.appspot.com",
+      messagingSenderId: "1088878162837",
+      appId: "1:1088878162837:web:d3eea8339ec78cf420fc9c",
+      measurementId: "G-QP6PXM5E8P"
+    };
+    // =======================================
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app, firebaseConfig.databaseURL);
+
+    // نفس قائمة التخصصات المستخدمة في النظام لضمان الترتيب
+    const specialties = [
+      "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
+      "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
+      "الأذنية","الجلدية","طب الأطفال","النسائية والتوليد","الجراحة العامة","الجراحة العظمية",
+      "الجراحة البولية","الجراحة الصدرية","الجراحة العصبية","الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية",
+      "جراحة الأطفال","الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
+      "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
+    ];
+    const types = ["عام","موازي","وزارة"];
+
+    const tbody = document.getElementById('minScoresTbody');
+    const lastUpdatedEl = document.getElementById('lastUpdated');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    // تحويل قيمة إلى عرض مناسب
+    function displayValue(v){
+      if (v === null || v === undefined) return '-';
+      if (v === '') return '-';
+      return String(v);
+    }
+
+    // بناء صفوف الجدول حسب التخصصات
+    function renderEmpty(){
+      tbody.innerHTML = `<tr><td colspan="4" class="empty">لا توجد نتائج منشورة حالياً</td></tr>`;
+      lastUpdatedEl.textContent = 'آخر تحديث: -';
+    }
+
+    function renderTable(minScores, generatedAt){
+      // minScores: { "التخصص": { "عام": value, "موازي": value, "وزارة": value }, ... }
+      let html = '';
+      specialties.forEach(spec => {
+        const row = minScores && minScores[spec] ? minScores[spec] : {};
+        const a = displayValue(row['عام'] ?? null);
+        const b = displayValue(row['موازي'] ?? null);
+        const c = displayValue(row['وزارة'] ?? null);
+        html += `<tr>
+          <td class="spec">${escapeHtml(spec)}</td>
+          <td class="type-a">${escapeHtml(a)}</td>
+          <td class="type-b">${escapeHtml(b)}</td>
+          <td class="type-c">${escapeHtml(c)}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+      if (generatedAt) {
+        const d = new Date(Number(generatedAt));
+        if (!isNaN(d)) lastUpdatedEl.textContent = 'آخر تحديث: ' + d.toLocaleString();
+        else lastUpdatedEl.textContent = 'آخر تحديث: -';
+      } else {
+        lastUpdatedEl.textContent = 'آخر تحديث: -';
+      }
+    }
+
+    // استمع للتغييرات الحية على /results/minScores أو على /results
+    const resultsRef = ref(db, 'results');
+    onValue(resultsRef, (snap) => {
+      if (!snap.exists()) {
+        renderEmpty();
+        return;
+      }
+      const data = snap.val();
+      // بعض النسخ تخزن minScores تحت results.minScores
+      const minScores = data.minScores || data.min_scores || null;
+      const generatedAt = data.generatedAt || data.generated_at || data.generated || null;
+      if (!minScores) {
+        // إذا لم توجد minScores، حاول حسابها من accepted إن وُجد
+        if (data.accepted) {
+          const computed = computeMinScoresFromAccepted(data.accepted);
+          renderTable(computed, generatedAt);
+        } else {
+          renderEmpty();
+        }
+      } else {
+        renderTable(minScores, generatedAt);
+      }
+    }, (err) => {
+      tbody.innerHTML = `<tr><td colspan="4" class="empty">خطأ عند جلب النتائج. افتح Console للمزيد.</td></tr>`;
+      console.error('onValue results error', err);
+    });
+
+    // زر التحديث اليدوي (يجلب snapshot مرة واحدة)
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = 'جارٍ التحديث...';
+        const snap = await get(resultsRef);
+        if (!snap.exists()) {
+          renderEmpty();
+          refreshBtn.textContent = 'تحديث الآن';
+          refreshBtn.disabled = false;
+          return;
+        }
+        const data = snap.val();
+        const minScores = data.minScores || data.min_scores || null;
+        const generatedAt = data.generatedAt || data.generated_at || data.generated || null;
+        if (!minScores && data.accepted) {
+          const computed = computeMinScoresFromAccepted(data.accepted);
+          renderTable(computed, generatedAt);
+        } else if (minScores) {
+          renderTable(minScores, generatedAt);
+        } else {
+          renderEmpty();
+        }
+      } catch (err) {
+        console.error('refresh error', err);
+        tbody.innerHTML = `<tr><td colspan="4" class="empty">فشل التحديث. افتح Console للمزيد.</td></tr>`;
+      } finally {
+        refreshBtn.textContent = 'تحديث الآن';
+        refreshBtn.disabled = false;
+      }
+    });
+
+    // زر الطباعة
+    printBtn.addEventListener('click', () => window.print());
+
+    // إذا لم تُنشر minScores، نحسبها من accepted
+    function computeMinScoresFromAccepted(acceptedObj){
+      // acceptedObj: { id: { assigned: spec, assignedType: type, score: number, ... }, ... }
+      const result = {};
+      specialties.forEach(s => { result[s] = { 'عام': null, 'موازي': null, 'وزارة': null }; });
+      Object.values(acceptedObj || {}).forEach(a => {
+        const spec = a.assigned;
+        const typ = a.assignedType;
+        const score = Number(a.score);
+        if (!spec || !typ || isNaN(score)) return;
+        if (!result[spec]) result[spec] = { 'عام': null, 'موازي': null, 'وزارة': null };
+        const cur = result[spec][typ];
+        if (cur === null || score < cur) result[spec][typ] = score;
+      });
+      return result;
+    }
+
+    // دالة مساعدة للهروب من XSS
+    function escapeHtml(text){
+      if (text === undefined || text === null) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // تحميل أولي (سيتم تحديث تلقائياً عبر onValue)
+    (async function init(){
+      buildInitialTable();
+      try {
+        // محاولة تحميل snapshot سريع لعرض شيء فوري
+        const snap = await get(resultsRef);
+        if (snap.exists()){
+          const data = snap.val();
+          const minScores = data.minScores || data.min_scores || null;
+          const generatedAt = data.generatedAt || data.generated_at || data.generated || null;
+          if (minScores) renderTable(minScores, generatedAt);
+          else if (data.accepted) renderTable(computeMinScoresFromAccepted(data.accepted), generatedAt);
+          else renderEmpty();
+        } else {
+          renderEmpty();
+        }
+      } catch (err) {
+        console.error('init load error', err);
+        renderEmpty();
+      }
+    })();
+
+    function buildInitialTable(){
+      // عرض صفوف فارغة بسرعة للحفاظ على ترتيب التخصصات
+      let html = '';
+      specialties.forEach(spec => {
+        html += `<tr>
+          <td class="spec">${escapeHtml(spec)}</td>
+          <td class="type-a">-</td>
+          <td class="type-b">-</td>
+          <td class="type-c">-</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
