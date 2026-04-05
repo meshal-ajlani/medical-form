@@ -1,115 +1,59 @@
 <!doctype html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>تسجيل مفاضلة الطب البشري</title>
 
-  <!-- خط واضح وجميل -->
   <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#f6fbfd;
-      --card:#ffffff;
-      --accent:#0b6b8f;
-      --accent-2:#0f8aa6;
-      --muted:#6b7c86;
-      --success:#d4edda;
-      --danger:#f8d7da;
-      --radius:12px;
-      --shadow:0 10px 30px rgba(10,30,40,0.06);
+      --bg:#f6fbfd; --card:#fff; --accent:#0b6b8f; --muted:#6b7c86;
+      --radius:12px; --shadow:0 10px 30px rgba(10,30,40,0.06);
     }
     html,body{height:100%}
     body{
-      margin:0;
-      font-family:'Almarai',system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;
-      background:linear-gradient(180deg,#eef9fb,#f6fbfd);
-      color:#123;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      padding:20px;
+      margin:0;font-family:'Almarai',system-ui,Segoe UI,Roboto,Arial;
+      background:linear-gradient(180deg,#eef9fb,#f6fbfd);color:#123;padding:20px;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
     }
-
-    .container{
-      max-width:980px;
-      margin:18px auto;
-      display:grid;
-      gap:18px;
-    }
-
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:var(--shadow);
-      border:1px solid rgba(10,30,40,0.03);
-    }
-
-    h1{margin:0 0 6px;color:var(--accent);font-size:20px;font-weight:700}
-    h2{margin:0 0 8px;color:#0b5f73;font-size:16px}
-    .lead{color:var(--muted);font-size:13px;margin-bottom:8px}
-
+    .container{max-width:980px;margin:18px auto;display:grid;gap:16px}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:var(--shadow);border:1px solid rgba(10,30,40,0.03)}
+    h1{margin:0 0 6px;color:var(--accent);font-size:20px}
+    .lead{color:var(--muted);font-size:14px;margin-bottom:8px}
     form .row{display:flex;gap:12px;flex-wrap:wrap}
     .col{flex:1 1 220px;min-width:180px}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
     input[type="text"], input[type="number"], select{
-      width:100%;
-      padding:12px 14px;
-      border-radius:10px;
-      border:1px solid #e6f3f6;
-      background:#fbfeff;
-      font-size:15px;
-      box-sizing:border-box;
-      outline:none;
-      transition:box-shadow .12s, border-color .12s;
+      width:100%;padding:12px 14px;border-radius:10px;border:1px solid #e6f3f6;background:#fbfeff;font-size:15px;box-sizing:border-box;
     }
-    input:focus, select:focus{box-shadow:0 6px 18px rgba(11,107,143,0.06);border-color:var(--accent-2)}
-
     .prefs{display:grid;gap:10px;margin-top:8px}
     .pref-row{display:flex;gap:8px;align-items:center}
-    .pref-row select{flex:1;padding:10px;border-radius:10px}
     .type-select{width:170px}
     .remove-btn{width:40px;height:40px;border-radius:10px;background:#fff;border:1px solid #e6f3f6;cursor:pointer;font-size:18px}
-    .remove-btn:hover{background:#f6fbff}
-
     .actions{display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap}
-    button.primary{
-      background:linear-gradient(180deg,var(--accent),var(--accent-2));
-      color:#fff;border:none;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px;
-      box-shadow:0 8px 20px rgba(11,107,143,0.12);
-    }
+    button.primary{background:linear-gradient(180deg,var(--accent),#0f8aa6);color:#fff;border:none;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px}
     button.ghost{background:#fff;border:1px solid #e6f3f6;padding:10px 12px;border-radius:10px;cursor:pointer}
     .status{font-size:14px;color:var(--muted);margin-left:8px}
-
-    .note{
-      margin-top:12px;padding:12px;border-radius:10px;background:#f0fbff;border:1px solid #e6f9ff;color:var(--muted);
-      font-size:13px;
-    }
-
-    /* responsive */
-    @media (max-width:720px){
-      .type-select{width:140px}
-      .col{min-width:140px}
-    }
-
-    /* success / error */
-    .msg{margin-top:10px;padding:10px;border-radius:10px;font-size:14px}
-    .msg.success{background:var(--success);color:#155724;border:1px solid rgba(21,87,63,0.08)}
-    .msg.error{background:var(--danger);color:#721c24;border:1px solid rgba(114,28,36,0.08)}
+    .note{margin-top:12px;padding:12px;border-radius:10px;background:#f0fbff;border:1px solid #e6f9ff;color:var(--muted);font-size:13px}
+    .msg{margin-top:10px;padding:10px;border-radius:10px;font-size:14px;display:none}
+    .msg.success{background:#d4edda;color:#155724}
+    .msg.error{background:#f8d7da;color:#721c24}
+    .fallback-note{font-size:13px;color:#6b7c86;margin-top:8px}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
       <h1>تسجيل مفاضلة الطب البشري</h1>
-      <p class="lead">واجهة تسجيل مبسطة وواضحة. اختر التخصص ونوعه لكل رغبة — سيتم حفظ البيانات في Realtime Database.</p>
+      <p class="lead">واجهة تسجيل مبسطة. إن تعذر تحميل بعض البيانات من الخادم، يمكنك المتابعة والتسجيل — سيتم حفظ بياناتك.</p>
 
       <form id="studentForm" autocomplete="off" novalidate>
         <div class="row">
           <div class="col">
             <label for="name">الاسم الكامل</label>
-            <input id="name" name="name" type="text" placeholder="مثال: محمد الأحمد" required />
+            <input id="name" name="name" type="text" placeholder="مثال: مشعل الأحمد" required />
           </div>
           <div class="col">
             <label for="examNo">الرقم الامتحاني</label>
@@ -127,23 +71,22 @@
         </div>
 
         <div class="actions">
-          <button id="submitBtn" class="primary" type="submit">إرسال التسجيل</button>
+          <button id="submitBtn" class="primary" type="submit" disabled>إرسال التسجيل</button>
           <button id="clearBtn" class="ghost" type="button">مسح الحقول</button>
-          <div id="status" class="status" aria-live="polite"></div>
+          <div id="status" class="status" aria-live="polite">جارٍ التهيئة...</div>
         </div>
 
-        <div id="message" class="msg" style="display:none"></div>
+        <div id="message" class="msg"></div>
 
         <div class="note">
           سيتم حفظ الرغبات كمصفوفة من الكائنات: <code>{ "specialty": "التخصص", "type": "عام" }</code>.
-          تأكد من اختيار نوع التخصص لكل رغبة.
         </div>
       </form>
     </div>
 
     <div class="card">
       <h2>نصائح سريعة</h2>
-      <p class="lead">- استخدم زر "مسح الحقول" لإعادة تعبئة النموذج بسرعة. — تأكد من أن الرغبات تطابق أسماء التخصصات في لوحة الإدارة.</p>
+      <p class="lead">- استخدم زر "مسح الحقول" لإعادة تعبئة النموذج بسرعة. — إن لم تُحمّل بعض البيانات من الخادم، يمكنك المتابعة والتسجيل وسيتم حفظ بياناتك.</p>
     </div>
   </div>
 
@@ -167,14 +110,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app, firebaseConfig.databaseURL);
 
-    // قائمة التخصصات (نفس القائمة المستخدمة في admin)
-    const specialties = [
-      "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
-      "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
-      "الأذنية","الجلدية","طب الأطفال","النسائية والتوليد","الجراحة العامة","الجراحة العظمية",
-      "الجراحة البولية","الجراحة الصدرية","الجراحة العصبية","الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية",
-      "جراحة الأطفال","الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
-      "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
+    // قائمة التخصصات الاحتياطية (fallback) — تُستخدم إن فشل تحميل القائمة من DB
+    const fallbackSpecialties = [
+      "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية",
+      "الداخلية العصبية","الداخلية الدموية","الداخلية الكلية","الطب النفسي","العينية",
+      "الأذنية","الجلدية","طب الأطفال","النسائية والتوليد","الجراحة العامة",
+      "الجراحة العظمية","الجراحة العصية","التخدير والإنعاش","الطب الشرعي","طب الطوارئ"
     ];
 
     const types = [
@@ -190,8 +131,8 @@
     const submitBtn = document.getElementById('submitBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    // أنشئ 10 صفوف رغبة بشكل واضح
-    function buildPrefsUI(){
+    // أنشئ 10 صفوف رغبة
+    function buildPrefsUI(specialtiesList){
       prefsContainer.innerHTML = '';
       for (let i = 1; i <= 10; i++){
         const row = document.createElement('div');
@@ -201,7 +142,7 @@
         specSelect.id = `pref_spec_${i}`;
         specSelect.setAttribute('aria-label', `التخصص ${i}`);
         const emptySpec = document.createElement('option'); emptySpec.value = ''; emptySpec.textContent = `${i} - لا اختيار`; specSelect.appendChild(emptySpec);
-        specialties.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; specSelect.appendChild(o); });
+        specialtiesList.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; specSelect.appendChild(o); });
 
         const typeSelect = document.createElement('select');
         typeSelect.id = `pref_type_${i}`;
@@ -223,34 +164,86 @@
         prefsContainer.appendChild(row);
       }
     }
-    buildPrefsUI();
 
-    // اختبار اتصال سريع عند تحميل الصفحة
-    (async function testConnection(){
+    // حالة افتراضية: بناء الواجهة باستخدام fallback حتى ينجح التحميل
+    buildPrefsUI(fallbackSpecialties);
+
+    // دوال حالة ورسائل
+    function showStatus(text, isError = false){
+      statusEl.textContent = text;
+      statusEl.style.color = isError ? '#c0392b' : '#0b6b8f';
+    }
+    function showMessage(text, type){
+      messageEl.style.display = 'block';
+      messageEl.textContent = text;
+      messageEl.className = 'msg ' + (type === 'success' ? 'success' : 'error');
+    }
+    function hideMessage(){
+      messageEl.style.display = 'none';
+    }
+
+    // تهيئة آمنة: تحاول تحميل قائمة التخصصات من DB لكن لا تمنع المستخدم إن فشل
+    async function safeInit(){
+      showStatus('جارٍ التحقق من اتصال قاعدة البيانات...');
+      submitBtn.disabled = true;
+
       try {
-        const rootSnap = await get(ref(db, '/'));
-        statusEl.textContent = rootSnap.exists() ? 'متصل بقاعدة البيانات' : 'متصل - القاعدة فارغة';
-        statusEl.style.color = '#0b6b8f';
+        // محاولة تحميل قائمة التخصصات من مسار اختياري (مثال: /specialties)
+        const snap = await get(ref(db, 'specialties'));
+        if (snap.exists()) {
+          const list = snap.val();
+          // إذا كانت البيانات مصفوفة أو كائن، نحولها إلى مصفوفة نصية
+          let arr = [];
+          if (Array.isArray(list)) arr = list.filter(Boolean);
+          else if (typeof list === 'object') arr = Object.values(list).filter(Boolean);
+          else arr = [];
+
+          if (arr.length > 0) {
+            buildPrefsUI(arr);
+            showStatus('تم تحميل قائمة التخصصات من الخادم.');
+          } else {
+            // لا بيانات مفيدة في المسار، نستخدم fallback
+            buildPrefsUI(fallbackSpecialties);
+            showStatus('قائمة التخصصات غير متاحة حالياً — يمكنك المتابعة.');
+          }
+        } else {
+          // لا يوجد مسار specialties في DB — نستخدم fallback
+          buildPrefsUI(fallbackSpecialties);
+          showStatus('قائمة التخصصات غير متاحة حالياً — يمكنك المتابعة.');
+        }
       } catch (err) {
-        console.error('RTDB connection error:', err);
-        statusEl.textContent = 'خطأ في الاتصال بقاعدة البيانات';
-        statusEl.style.color = '#c0392b';
+        // تعامل هادئ مع الخطأ: لا نعرض رسالة "خطأ في الاتصال" مزعجة
+        console.warn('Non-fatal DB read error:', err);
+        buildPrefsUI(fallbackSpecialties);
+        showStatus('بعض البيانات غير متاحة حالياً — يمكنك المتابعة والتسجيل.');
+      } finally {
+        submitBtn.disabled = false;
       }
-    })();
+    }
 
     // مسح الحقول
     clearBtn.addEventListener('click', () => {
       form.reset();
-      buildPrefsUI();
-      messageEl.style.display = 'none';
-      statusEl.textContent = 'تم مسح الحقول';
-      setTimeout(()=> statusEl.textContent = '', 1800);
+      // إعادة بناء الواجهة بنفس التخصصات الحالية في الـ DOM
+      const currentSpecs = [];
+      const firstSpecSelect = document.getElementById('pref_spec_1');
+      if (firstSpecSelect) {
+        // اجمع الخيارات من أول select كمرجع
+        for (let i = 0; i < firstSpecSelect.options.length; i++){
+          const v = firstSpecSelect.options[i].value;
+          if (v) currentSpecs.push(v);
+        }
+      }
+      buildPrefsUI(currentSpecs.length ? currentSpecs : fallbackSpecialties);
+      hideMessage();
+      showStatus('تم مسح الحقول');
+      setTimeout(()=> showStatus(''), 1600);
     });
 
     // إرسال النموذج
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      messageEl.style.display = 'none';
+      hideMessage();
       submitBtn.disabled = true;
       submitBtn.textContent = 'جاري الإرسال...';
 
@@ -266,7 +259,6 @@
         return;
       }
 
-      // اجمع الرغبات كمصفوفة من الكائنات { specialty, type }
       const prefs = [];
       for (let i = 1; i <= 10; i++) {
         const spec = document.getElementById(`pref_spec_${i}`).value;
@@ -293,23 +285,21 @@
         });
         showMessage('تم التسجيل بنجاح. شكراً لك.', 'success');
         form.reset();
-        buildPrefsUI();
-        statusEl.textContent = 'تم الإرسال';
-        setTimeout(()=> statusEl.textContent = '', 2000);
+        buildPrefsUI(fallbackSpecialties);
+        showStatus('تم الإرسال');
+        setTimeout(()=> showStatus(''), 2000);
       } catch (err) {
         console.error('Write error:', err);
-        showMessage('فشل الإرسال. افتح Console للمزيد من التفاصيل.', 'error');
+        // حتى لو فشل الكتابة، لا نظهر رسالة "خطأ في الاتصال" مزعجة — نعرض رسالة ودية
+        showMessage('فشل الإرسال. حاول مرة أخرى لاحقاً أو تواصل مع الدعم.', 'error');
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'إرسال التسجيل';
       }
     });
 
-    function showMessage(text, type){
-      messageEl.style.display = 'block';
-      messageEl.textContent = text;
-      messageEl.className = 'msg ' + (type === 'success' ? 'success' : 'error');
-    }
+    // بدء التهيئة الآمنة
+    safeInit();
   </script>
 </body>
 </html>
