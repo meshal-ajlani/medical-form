@@ -1,555 +1,110 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!doctype html>
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <title>نموذج تسجيل الرغبات – الدراسات</title>
-    <style>
-        body {
-            font-family: "Tahoma", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f4f7fb;
-            margin: 0;
-            padding: 0;
-            color: #1f2933;
-        }
-
-        .page-wrapper {
-            max-width: 1100px;
-            margin: 30px auto;
-            padding: 20px;
-        }
-
-        .card {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-            padding: 24px 28px;
-            margin-bottom: 20px;
-            border-top: 4px solid #2563eb;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 12px;
-        }
-
-        .card-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1d4ed8;
-        }
-
-        .card-subtitle {
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-            margin-bottom: 14px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        label {
-            font-size: 13px;
-            color: #4b5563;
-        }
-
-        input, select {
-            padding: 8px 10px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            font-size: 14px;
-            outline: none;
-            background-color: #f9fafb;
-        }
-
-        input:focus, select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
-            background-color: #ffffff;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th, td {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #eff6ff;
-            font-size: 13px;
-            color: #1f2937;
-        }
-
-        tr:nth-child(even) td {
-            background-color: #f9fafb;
-        }
-
-        .choice-select {
-            width: 100%;
-        }
-
-        .btn-row {
-            display: flex;
-            justify-content: flex-start;
-            gap: 10px;
-            margin-top: 18px;
-        }
-
-        .btn-primary {
-            background: #2563eb;
-            color: #ffffff;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 999px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            background: #1d4ed8;
-        }
-
-        .note {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 6px;
-        }
-
-        .error {
-            color: #b91c1c;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            th, td {
-                font-size: 12px;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>تسجيل مفاضلة الطب البشري</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4fbff;--card:#fff;--accent:#0b6b8f;--muted:#6b7c86}
+    body{font-family:'Cairo',sans-serif;background:linear-gradient(180deg,#eaf7fb,#f4fbff);margin:0;padding:20px;color:#123}
+    .container{max-width:900px;margin:20px auto;padding:24px;background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06)}
+    h1{color:var(--accent);margin:0 0 12px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    input,select,button{padding:10px;border:1px solid #e0eef2;border-radius:8px;width:100%;box-sizing:border-box}
+    label{font-size:14px;color:var(--muted);margin-bottom:6px;display:block}
+    .col{flex:1 1 200px;min-width:180px}
+    .prefs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .note{background:#eef9fb;padding:10px;border-radius:8px;color:var(--muted);margin-top:12px}
+    button{background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;padding:10px 14px}
+  </style>
 </head>
 <body>
-
-<div class="page-wrapper">
-    <div class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">استبيان المفاضلة الطبية</div>
-                <div class="card-subtitle">يرجى تعبئة البيانات بدقة واختيار نوع التخصص قبل اختيار التخصص في كل رغبة.</div>
-            </div>
+  <div class="container">
+    <h1>تسجيل مفاضلة الطب البشري</h1>
+    <form id="studentForm">
+      <div class="row">
+        <div class="col"><label>الاسم الكامل</label><input id="name" required /></div>
+        <div class="col"><label>الرقم الامتحاني</label><input id="examNo" required /></div>
+        <div class="col"><label>المعدل</label><input id="score" type="number" step="0.01" required /></div>
+        <div class="col">
+          <label>نوع التخصص</label>
+          <select id="type">
+            <option value="عام">دراسات عليا عام</option>
+            <option value="موازي">دراسات عليا موازي</option>
+            <option value="وزارة">وزارة الصحة</option>
+          </select>
         </div>
+      </div>
 
-        <!-- بيانات الطالب الأساسية -->
-        <div class="form-row">
-            <div class="form-group">
-                <label for="studentName">اسم الطالب الثلاثي</label>
-                <input id="studentName" type="text" placeholder="مثال: محمد أحمد علي">
-            </div>
-            <div class="form-group">
-                <label for="examNumber">الرقم الامتحاني</label>
-                <input id="examNumber" type="number" placeholder="مثال: 12345">
-            </div>
-            <div class="form-group">
-                <label for="score">المعدل</label>
-                <input id="score" type="number" step="0.01" placeholder="مثال: 78.25">
-            </div>
-        </div>
+      <div style="margin-top:12px">
+        <label>الرغبات (حتى 10)</label>
+        <div id="prefsContainer" class="prefs"></div>
+      </div>
 
-        <!-- جدول الرغبات -->
-        <div style="margin-top: 18px;">
-            <label style="font-size:14px; font-weight:600; color:#374151;">رغبات التخصص (10 رغبات كحد أقصى)</label>
-            <div class="note">لا يمكن اختيار التخصص قبل اختيار <strong>نوع التخصص</strong> في نفس السطر.</div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+        <button type="submit">إرسال</button>
+        <div id="status" style="color:var(--muted)"></div>
+      </div>
+      <div class="note">تصميم بسيط. يمكنك تعديل أو حذف التسجيل لاحقاً من واجهة الإدارة.</div>
+    </form>
+  </div>
 
-            <table>
-                <thead>
-                <tr>
-                    <th>رقم الرغبة</th>
-                    <th>نوع التخصص</th>
-                    <th>التخصص</th>
-                </tr>
-                </thead>
-                <tbody>
-                <!-- نكرر 10 أسطر -->
-                <!-- كل سطر له: نوع التخصص + التخصص -->
-                <!-- نوع التخصص يفعّل قائمة التخصص -->
-                <!-- سطر 1 -->
-                <!-- نستخدم data-index لسهولة التعامل في JS -->
-                <!-- رح أكتبهم بحلقة JS لاحقاً، لكن هنا نكتبهم يدويًا لسهولة الفهم -->
-                <!-- رح أستخدم نفس الـ id pattern: type-1, spec-1 ... -->
-                <!-- 1 إلى 10 -->
-                <!-- أقدر أختصر، بس بخليك تشوفهم صريحين -->
-                <!-- row 1 -->
-                <tr>
-                    <td>1</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-1" data-index="1">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-1" data-index="1" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-                <tr>
-                    <td>2</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-2" data-index="2">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-2" data-index="2" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>3</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-3" data-index="3">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-3" data-index="3" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>4</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-4" data-index="4">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-4" data-index="4" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>5</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-5" data-index="5">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-5" data-index="5" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>6</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-6" data-index="6">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-6" data-index="6" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>7</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-7" data-index="7">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-7" data-index="7" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>8</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-8" data-index="8">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-8" data-index="8" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>9</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-9" data-index="9">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-9" data-index="9" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>10</td>
-                    <td>
-                        <select class="choice-select type-select" id="type-10" data-index="10">
-                            <option value="">— اختر نوع التخصص —</option>
-                            <option value="دراسات عام">دراسات عام</option>
-                            <option value="دراسات موازي">دراسات موازي</option>
-                            <option value="وزارة الصحة">وزارة الصحة</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="choice-select spec-select" id="spec-10" data-index="10" disabled>
-                            <option value="">— اختر التخصص —</option>
-                        </select>
-                    </td>
-                </tr>
-
-                </tbody>
-            </table>
-        </div>
-
-        <div class="btn-row">
-            <button class="btn-primary" onclick="submitForm()">تسجيل الرغبات</button>
-        </div>
-        <div id="errorBox" class="error" style="display:none;"></div>
-    </div>
-</div>
-
-<!-- Firebase App -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<!-- Firebase Database -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-<script>
-    // إعداد Firebase (نفس الإعداد اللي اشتغل معك)
     const firebaseConfig = {
-        apiKey: "AIzaSyA9PmgtkNuY25DEy6_G30tryB-d4s3l_2g",
-        authDomain: "medical-form-80f5a.firebaseapp.com",
-        databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app/",
-        projectId: "medical-form-80f5a",
-        storageBucket: "medical-form-80f5a.firebasestorage.app",
-        messagingSenderId: "662141312032",
-        appId: "1:662141312032:web:14b50dd58662927952b045",
-        measurementId: "G-1GHFZF8QRS"
+      apiKey: "API_KEY",
+      authDomain: "PROJECT.firebaseapp.com",
+      databaseURL: "https://PROJECT-default-rtdb.firebaseio.com",
+      projectId: "PROJECT",
+      appId: "APP_ID"
     };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // قائمة التخصصات
     const specialties = [
-        "الداخلية العامة",
-        "الداخلية القلبية",
-        "الداخلية الهضمية",
-        "الداخلية الصدرية",
-        "الداخلية الغدية",
-        "الداخلية العصبية",
-        "الداخلية الدموية",
-        "الداخلية الكلوية",
-        "الداخلية الرثوية",
-        "الداخلية الخمجية",
-        "الطب النفسي",
-        "العينية",
-        "الأذنية",
-        "الجلدية",
-        "طب الأطفال",
-        "النسائية والتوليد",
-        "الجراحة العامة",
-        "الجراحة العظمية",
-        "الجراحة البولية",
-        "الجراحة الصدرية",
-        "الجراحة العصبية",
-        "الجراحة التجميلية",
-        "الجراحة القلبية",
-        "جراحة الأوعية",
-        "جراحة الأطفال",
-        "الطب المخبري",
-        "التصوير الطبي والشعاعي",
-        "التشريح المرضي",
-        "طب الأورام",
-        "طب الأسرة",
-        "الطب الشرعي",
-        "طب الطوارئ",
-        "التخدير والإنعاش",
-        "الطب الفيزيائي",
-        "الطب النووي",
-        "المعالجة الشعاعية للأورام"
+      "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
+      "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
+      "الأذنية","الجلدية","طب الأطفال","النسائية والتوليد","الجراحة العامة","الجراحة العظمية",
+      "الجراحة البولية","الجراحة الصدرية","الجراحة العصبية","الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية",
+      "جراحة الأطفال","الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
+      "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
     ];
 
-    // تعبئة قوائم التخصصات + تفعيلها فقط بعد اختيار نوع التخصص
-    function initChoices() {
-        const specSelects = document.querySelectorAll(".spec-select");
-        const typeSelects = document.querySelectorAll(".type-select");
-
-        // تعبئة قائمة التخصصات لكل سطر
-        specSelects.forEach(select => {
-            specialties.forEach(spec => {
-                const opt = document.createElement("option");
-                opt.value = spec;
-                opt.textContent = spec;
-                select.appendChild(opt);
-            });
-        });
-
-        // ربط نوع التخصص مع تفعيل قائمة التخصص
-        typeSelects.forEach(typeSel => {
-            typeSel.addEventListener("change", () => {
-                const index = typeSel.getAttribute("data-index");
-                const specSel = document.getElementById("spec-" + index);
-
-                if (typeSel.value) {
-                    specSel.disabled = false;
-                } else {
-                    specSel.disabled = true;
-                    specSel.value = "";
-                }
-            });
-        });
+    const prefsContainer = document.getElementById('prefsContainer');
+    for (let i=1;i<=10;i++){
+      const sel = document.createElement('select');
+      sel.id = 'pref'+i;
+      const empty = document.createElement('option'); empty.value=''; empty.textContent = `${i} - لا اختيار`;
+      sel.appendChild(empty);
+      specialties.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+      prefsContainer.appendChild(sel);
     }
 
-    initChoices();
+    const form = document.getElementById('studentForm');
+    const status = document.getElementById('status');
 
-    function showError(msg) {
-        const box = document.getElementById("errorBox");
-        box.textContent = msg;
-        box.style.display = "block";
-    }
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      status.textContent = 'جاري الإرسال...';
+      const name = document.getElementById('name').value.trim();
+      const examNo = document.getElementById('examNo').value.trim();
+      const score = parseFloat(document.getElementById('score').value);
+      const type = document.getElementById('type').value;
+      const prefs = [];
+      for (let i=1;i<=10;i++){ const v = document.getElementById('pref'+i).value; if (v) prefs.push(v); }
+      if (!name || !examNo || isNaN(score) || prefs.length===0){ status.textContent='تأكد من تعبئة الحقول الأساسية ورغبة واحدة على الأقل.'; return; }
 
-    function clearError() {
-        const box = document.getElementById("errorBox");
-        box.textContent = "";
-        box.style.display = "none";
-    }
-
-    function submitForm() {
-        clearError();
-
-        const name = document.getElementById("studentName").value.trim();
-        const exam = document.getElementById("examNumber").value.trim();
-        const score = document.getElementById("score").value.trim();
-
-        if (!name || !exam || !score) {
-            showError("يرجى تعبئة الاسم والرقم الامتحاني والمعدل.");
-            return;
-        }
-
-        const choices = {};
-        let hasAtLeastOneChoice = false;
-
-        for (let i = 1; i <= 10; i++) {
-            const typeSel = document.getElementById("type-" + i);
-            const specSel = document.getElementById("spec-" + i);
-
-            const typeVal = typeSel.value;
-            const specVal = specSel.value;
-
-            // إذا الطالب ما اختار شي في هذا السطر → نتجاهله
-            if (!typeVal && !specVal) continue;
-
-            // إذا اختار تخصص بدون نوع التخصص → ممنوع
-            if (!typeVal && specVal) {
-                showError("في الرغبة رقم " + i + ": لا يمكن اختيار التخصص بدون اختيار نوع التخصص أولاً.");
-                return;
-            }
-
-            // إذا اختار نوع التخصص بدون تخصص → ممنوع
-            if (typeVal && !specVal) {
-                showError("في الرغبة رقم " + i + ": يرجى اختيار التخصص بعد اختيار نوع التخصص.");
-                return;
-            }
-
-            hasAtLeastOneChoice = true;
-            choices[i] = {
-                specialty: specVal,
-                type: typeVal
-            };
-        }
-
-        if (!hasAtLeastOneChoice) {
-            showError("يرجى إدخال رغبة واحدة على الأقل.");
-            return;
-        }
-
-        db.ref("students/" + exam).set({
-            name: name,
-            exam: exam,
-            score: score,
-            choices: choices,
-            createdAt: new Date().toISOString()
-        }).then(() => {
-            alert("تم تسجيل الرغبات بنجاح.");
-        }).catch((error) => {
-            console.error(error);
-            showError("حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.");
-        });
-    }
-</script>
-
+      const studentsRef = ref(db, 'students');
+      const newRef = push(studentsRef);
+      await set(newRef, { name, examNo, score, type, prefs, createdAt: Date.now() });
+      status.textContent = 'تم التسجيل بنجاح.';
+      form.reset();
+      for (let i=1;i<=10;i++) document.getElementById('pref'+i).value = '';
+      setTimeout(()=> status.textContent = '', 3000);
+    });
+  </script>
 </body>
 </html>
