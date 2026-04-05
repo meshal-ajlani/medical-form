@@ -83,6 +83,8 @@ button:hover {
 </div>
 
 <script>
+
+// قائمة التخصصات
 const specialties = [
     "الداخلية العامة",
     "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
@@ -96,6 +98,7 @@ const specialties = [
     "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
 ];
 
+// إنشاء 10 رغبات
 function createChoiceRow(num) {
     let options = specialties.map(s => `<option>${s}</option>`).join("");
 
@@ -120,6 +123,7 @@ function createChoiceRow(num) {
 document.getElementById("choicesContainer").innerHTML =
     Array.from({length: 10}, (_, i) => createChoiceRow(i+1)).join("");
 
+// حفظ الطالب
 function submitForm() {
     const name = document.getElementById("name").value;
     const exam = document.getElementById("exam").value;
@@ -145,8 +149,9 @@ function submitForm() {
 
     localStorage.setItem("students", JSON.stringify(students));
 
-    window.location.href = "results.html";
+    alert("تم تسجيل الطالب بنجاح");
 }
+
 </script>
 
 </body>
