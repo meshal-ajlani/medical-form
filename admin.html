@@ -2,345 +2,351 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>لوحة الإدارة</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-
+<title>لوحة الإدارة – نظام القبول</title>
 <style>
-/* خلفية عامة بطابع طبي */
-body {
-    font-family: "Tajawal", sans-serif;
-    background: linear-gradient(135deg, #e8f5f7 0%, #f4fbfc 100%);
-    padding: 25px;
-}
-
-/* صندوق المحتوى */
-.container {
-    max-width: 1250px;
-    margin: auto;
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 18px;
-    border: 1px solid #d7e8ea;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-}
-
-/* العنوان */
-h1 {
-    text-align: center;
-    color: #0a6fae;
-    margin-bottom: 30px;
-    font-weight: 800;
-    letter-spacing: 1px;
-}
-
-/* الأزرار */
-button {
-    padding: 12px 20px;
-    margin: 6px;
-    border: none;
-    border-radius: 10px;
-    background: #0a6fae;
-    color: white;
-    cursor: pointer;
-    font-size: 15px;
-    transition: 0.25s;
-    font-weight: 600;
-}
-button:hover {
-    background: #095e94;
-    transform: translateY(-2px);
-}
-
-/* زر الحذف */
-.delete-btn {
-    background: #d9534f;
-}
-.delete-btn:hover {
-    background: #b84441;
-}
-
-/* الحقول */
-input {
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #bcd4d7;
-    width: 100%;
-    transition: 0.2s;
-}
-input:focus {
-    border-color: #0a6fae;
-    box-shadow: 0 0 5px rgba(10,111,174,0.3);
-}
-
-/* عناوين الأقسام */
-.section-title {
-    margin-top: 35px;
-    font-size: 22px;
-    color: #0a6fae;
-    font-weight: 800;
-    border-right: 6px solid #0a6fae;
-    padding-right: 12px;
-    margin-bottom: 10px;
-}
-
-/* الجداول */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    background: #ffffff;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-/* رؤوس الجداول */
-th {
-    background: #dff3f6;
-    color: #0a6fae;
-    font-weight: 700;
-    padding: 12px;
-    font-size: 15px;
-    border-bottom: 2px solid #cfe3e6;
-}
-
-/* خلايا الجداول */
-td {
-    padding: 10px;
-    background: #ffffff;
-    border-bottom: 1px solid #e6f2f4;
-    font-size: 14px;
-}
-
-/* صفوف متناوبة */
-tr:nth-child(even) td {
-    background: #f7fcfd;
-}
-
-/* صندوق المقاعد */
-#seatsWrapper {
-    max-height: 300px;
-    overflow-y: scroll;
-    border: 1px solid #cfe3e6;
-    border-radius: 12px;
-    padding: 5px;
-    background: #f7fcfd;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
-}
-
-/* تحسين شريط التمرير */
-#seatsWrapper::-webkit-scrollbar {
-    width: 8px;
-}
-#seatsWrapper::-webkit-scrollbar-thumb {
-    background: #0a6fae;
-    border-radius: 10px;
-}
-#seatsWrapper::-webkit-scrollbar-track {
-    background: #e3f2f4;
-}
+body { font-family: Tahoma; background: #f4f7fb; margin: 0; padding: 0; }
+#loginBox { max-width: 400px; margin: 120px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); text-align: center; }
+#loginBox input { width: 100%; padding: 10px; margin-top: 15px; border-radius: 6px; border: 1px solid #ccc; }
+#loginBox button { margin-top: 15px; padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
+#loginBox button:hover { background: #1d4ed8; }
+#errorMsg { color: red; margin-top: 10px; font-size: 14px; }
+#adminPanel { display: none; }
+.container { max-width: 1300px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+h2 { color: #1d4ed8; margin-bottom: 10px; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+th { background: #e8f0fe; }
+input { padding: 6px; width: 100%; }
+button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
+button:hover { background: #1d4ed8; }
+.section { margin-bottom: 30px; }
+.scroll-box { max-height: 350px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
+#floatingBtn { position: fixed; bottom: 25px; right: 25px; background: #2563eb; color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 9999; }
+#floatingBtn:hover { background: #1d4ed8; }
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<div id="floatingBtn" onclick="runAcceptance()">تحديث النتائج</div>
 
-    <h1>لوحة الإدارة</h1>
-
-    <button class="delete-btn" onclick="deleteAllStudents()">حذف جميع الطلاب</button>
-    <button onclick="deleteOneStudent()">حذف طالب معيّن</button>
-    <button onclick="exportExcel()">تصدير النتائج كـ Excel</button>
-
-    <div class="section-title">تعديل المقاعد</div>
-    <div id="seatsWrapper">
-        <table id="seatsTable"></table>
-    </div>
-    <button onclick="saveSeats()">حفظ المقاعد</button>
-
-    <div class="section-title">الحد الأدنى</div>
-    <table id="minTable">
-        <tr>
-            <th>التخصص</th>
-            <th>العام</th>
-            <th>الموازي</th>
-            <th>الصحة</th>
-        </tr>
-    </table>
-
-    <div class="section-title">المقبولون حسب كل تخصص</div>
-    <table id="acceptedBySpec">
-        <tr>
-            <th>التخصص</th>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>نوع المقعد</th>
-            <th>رقم الرغبة</th>
-        </tr>
-    </table>
-
-    <div class="section-title">الجدول الشامل</div>
-    <table id="finalTable">
-        <tr>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>التخصص</th>
-            <th>نوع المقعد</th>
-            <th>رقم الرغبة</th>
-        </tr>
-    </table>
-
-    <div class="section-title">غير المقبولين</div>
-    <table id="rejectedTable">
-        <tr>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>سبب الرفض</th>
-        </tr>
-    </table>
-
+<div id="loginBox">
+    <h2>تسجيل الدخول للوحة الإدارة</h2>
+    <input type="password" id="adminPass" placeholder="أدخل كلمة السر">
+    <button onclick="checkPassword()">دخول</button>
+    <div id="errorMsg"></div>
 </div>
 
-<script>
+<div id="adminPanel">
+<div class="container">
 
-// التخصصات (بعد إضافة الداخلية العامة + تصحيح الداخلية الرئوية)
+<h2>إدارة المقاعد</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="seatsTable">
+<tr>
+    <th>التخصص</th>
+    <th>عام</th>
+    <th>موازي</th>
+    <th>صحة</th>
+</tr>
+</table>
+</div>
+<button onclick="saveSeats()">حفظ المقاعد</button>
+</div>
+
+<h2>الطلاب المسجلون</h2>
+<div class="section">
+<table id="studentsTable">
+<tr>
+    <th>الاسم</th>
+    <th>الرقم</th>
+    <th>المعدل</th>
+    <th>الرغبات</th>
+    <th>حذف</th>
+</tr>
+</table>
+<button onclick="deleteAllStudents()">حذف جميع الطلاب</button>
+</div>
+
+<h2>الطلاب المقبولون</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="acceptedTable">
+<tr>
+    <th>الاسم</th>
+    <th>الرقم</th>
+    <th>المعدل</th>
+    <th>التخصص</th>
+    <th>نوع المقعد</th>
+    <th>الرغبة</th>
+</tr>
+</table>
+</div>
+</div>
+
+<h2>الطلاب المرفوضون</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="rejectedTable">
+<tr>
+    <th>الاسم</th>
+    <th>الرقم</th>
+    <th>المعدل</th>
+</tr>
+</table>
+</div>
+</div>
+
+<h2>الحد الأدنى</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="minTable">
+<tr>
+    <th>التخصص</th>
+    <th>عام</th>
+    <th>موازي</th>
+    <th>صحة</th>
+</tr>
+</table>
+</div>
+</div>
+
+<button onclick="deleteResults()">حذف النتائج</button>
+
+</div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+const ADMIN_PASSWORD = "Meshal2025";
+
+function checkPassword() {
+    if (document.getElementById("adminPass").value === ADMIN_PASSWORD) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+    } else {
+        document.getElementById("errorMsg").textContent = "كلمة السر غير صحيحة";
+    }
+}
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA9PmgtkNuY25DEy6_G30tryB-d4s3l_2g",
+    authDomain: "medical-form-80f5a.firebaseapp.com",
+    databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "medical-form-80f5a",
+    storageBucket: "medical-form-80f5a.firebasestorage.app",
+    messagingSenderId: "662141312032",
+    appId: "1:662141312032:web:14b50dd58662927952b045"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const specialties = [
-    "الداخلية العامة",
-    "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
-    "الداخلية الدموية","الداخلية الكلية","الداخلية الرئوية","الداخلية الخمجية",
-    "الطب النفسي","العينية","الأذنية","الجلدية",
-    "طب الأطفال","النسائية والتوليد",
-    "الجراحة العامة","الجراحة العظمية","الجراحة البولية","الجراحة الصدرية","الجراحة العصبية",
-    "الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية","جراحة الأطفال",
-    "الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي",
-    "طب الأورام","طب الأسرة","الطب الشرعي","طب الطوارئ","التخدير والإنعاش",
-    "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
+"الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية",
+"الداخلية العصبية","الداخلية الدموية","الداخلية الكلوية","الداخلية الرثوية","الداخلية الخمجية",
+"الطب النفسي","العينية","الأذنية","الجلدية","طب الأطفال","النسائية والتوليد",
+"الجراحة العامة","الجراحة العظمية","الجراحة البولية","الجراحة الصدرية","الجراحة العصبية",
+"الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية","جراحة الأطفال",
+"الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
+"الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
 ];
 
-// تحميل المقاعد
+function typeMap(type) {
+    if (type.includes("عام")) return "عام";
+    if (type.includes("موازي")) return "موازي";
+    if (type.includes("صحة")) return "صحة";
+    return null;
+}
+
 function loadSeats() {
-    let seats = JSON.parse(localStorage.getItem("seats") || "{}");
-
-    if (Object.keys(seats).length === 0) {
-        specialties.forEach(s => {
-            seats[s] = { general: 0, parallel: 0, health: 0 };
-        });
-        localStorage.setItem("seats", JSON.stringify(seats));
-    }
-
     const table = document.getElementById("seatsTable");
-    table.innerHTML = `
-        <tr>
-            <th>التخصص</th>
-            <th>العام</th>
-            <th>الموازي</th>
-            <th>الصحة</th>
-        </tr>
-    `;
-
-    Object.keys(seats).forEach(spec => {
-        table.innerHTML += `
-            <tr>
-                <td>${spec}</td>
-                <td><input id="g_${spec}" value="${seats[spec].general}"></td>
-                <td><input id="p_${spec}" value="${seats[spec].parallel}"></td>
-                <td><input id="h_${spec}" value="${seats[spec].health}"></td>
-            </tr>
+    specialties.forEach(spec => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${spec}</td>
+            <td><input id="seat-${spec}-عام" type="number"></td>
+            <td><input id="seat-${spec}-موازي" type="number"></td>
+            <td><input id="seat-${spec}-صحة" type="number"></td>
         `;
+        table.appendChild(row);
+    });
+
+    db.ref("seats").once("value", snap => {
+        const data = snap.val() || {};
+        Object.keys(data).forEach(spec => {
+            document.getElementById(`seat-${spec}-عام`).value = data[spec].عام;
+            document.getElementById(`seat-${spec}-موازي`).value = data[spec].موازي;
+            document.getElementById(`seat-${spec}-صحة`).value = data[spec].صحة;
+        });
     });
 }
 
-// حفظ المقاعد
 function saveSeats() {
-    const rows = document.querySelectorAll("#seatsTable tr");
     const seats = {};
-
-    rows.forEach((row, i) => {
-        if (i === 0) return;
-        const spec = row.children[0].innerText;
+    specialties.forEach(spec => {
         seats[spec] = {
-            general: Number(row.children[1].children[0].value),
-            parallel: Number(row.children[2].children[0].value),
-            health: Number(row.children[3].children[0].value)
+            عام: Number(document.getElementById(`seat-${spec}-عام`).value || 0),
+            موازي: Number(document.getElementById(`seat-${spec}-موازي`).value || 0),
+            صحة: Number(document.getElementById(`seat-${spec}-صحة`).value || 0)
         };
     });
-
-    localStorage.setItem("seats", JSON.stringify(seats));
+    db.ref("seats").set(seats);
     alert("تم حفظ المقاعد");
-    updateResults();
 }
 
-// حذف جميع الطلاب
+function loadStudents() {
+    db.ref("students").on("value", snap => {
+        const table = document.getElementById("studentsTable");
+        table.innerHTML = `
+            <tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>الرغبات</th><th>حذف</th></tr>
+        `;
+        snap.forEach(s => {
+            const st = s.val();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${st.name}</td>
+                <td>${st.exam}</td>
+                <td>${st.score}</td>
+                <td>${JSON.stringify(st.choices)}</td>
+                <td><button onclick="deleteStudent('${st.exam}')">حذف</button></td>
+            `;
+            table.appendChild(row);
+        });
+    });
+}
+
+function deleteStudent(exam) {
+    db.ref("students/" + exam).remove();
+}
+
 function deleteAllStudents() {
-    if (confirm("هل تريد حذف جميع الطلاب؟")) {
-        localStorage.removeItem("students");
-        updateResults();
-    }
+    if (confirm("هل أنت متأكد؟")) db.ref("students").remove();
 }
 
-// حذف طالب معيّن
-function deleteOneStudent() {
-    const exam = prompt("أدخل الرقم الامتحاني للطالب:");
-    if (!exam) return;
-
-    let students = JSON.parse(localStorage.getItem("students") || "[]");
-    students = students.filter(s => s.exam !== exam);
-
-    localStorage.setItem("students", JSON.stringify(students));
-    alert("تم حذف الطالب");
-    updateResults();
+function deleteResults() {
+    db.ref("results").remove();
+    db.ref("min_scores").remove();
+    db.ref("seats_used").remove();
+    alert("تم حذف النتائج");
 }
 
-// تحويل نوع المقعد
-function typeMap(type) {
-    if (type.includes("عام")) return "general";
-    if (type.includes("موازي")) return "parallel";
-    return "health";
+function loadAccepted() {
+    db.ref("results").on("value", snap => {
+        const table = document.getElementById("acceptedTable");
+        table.innerHTML = `
+            <tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>التخصص</th><th>نوع المقعد</th><th>الرغبة</th></tr>
+        `;
+        snap.forEach(s => {
+            const r = s.val();
+            if (!r.accepted) return;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${r.name}</td>
+                <td>${r.exam}</td>
+                <td>${r.score}</td>
+                <td>${r.specialty}</td>
+                <td>${r.type}</td>
+                <td>${r.choiceNumber}</td>
+            `;
+            table.appendChild(row);
+        });
+    });
 }
 
-// التوزيع النهائي الصحيح
-function updateResults() {
-    const students = JSON.parse(localStorage.getItem("students") || "[]");
-    const seatsOriginal = JSON.parse(localStorage.getItem("seats") || "{}");
+function loadRejected() {
+    db.ref("results").on("value", snap => {
+        const table = document.getElementById("rejectedTable");
+        table.innerHTML = `
+            <tr><th>الاسم</th><th>الرقم</th><th>المعدل</th></tr>
+        `;
+        snap.forEach(s => {
+            const r = s.val();
+            if (r.accepted) return;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${r.name}</td>
+                <td>${r.exam}</td>
+                <td>${r.score}</td>
+            `;
+            table.appendChild(row);
+        });
+    });
+}
 
-    const seats = JSON.parse(JSON.stringify(seatsOriginal));
+function loadMinScores() {
+    db.ref("min_scores").on("value", snap => {
+        const table = document.getElementById("minTable");
+        table.innerHTML = `
+            <tr><th>التخصص</th><th>عام</th><th>موازي</th><th>صحة</th></tr>
+        `;
+        const data = snap.val() || {};
+        specialties.forEach(spec => {
+            const m = data[spec] || { عام: "—", موازي: "—", صحة: "—" };
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${spec}</td>
+                <td>${m.عام}</td>
+                <td>${m.موازي}</td>
+                <td>${m.صحة}</td>
+            `;
+            table.appendChild(row);
+        });
+    });
+}
 
-    const accepted = [];
-    const rejected = [];
+async function runAcceptance() {
+
+    const seatsSnap = await db.ref("seats").once("value");
+    const seats = seatsSnap.val() || {};
+
+    const studentsSnap = await db.ref("students").once("value");
+    const students = [];
+    studentsSnap.forEach(s => students.push(s.val()));
+
+    students.sort((a, b) => Number(b.score) - Number(a.score));
+
+    const results = {};
     const minScores = {};
-
-    // ترتيب الطلاب حسب المعدل
-    students.sort((a, b) => b.grade - a.grade);
 
     students.forEach(student => {
         let assigned = false;
 
-        for (let i = 0; i < student.choices.length; i++) {
-            const spec = student.choices[i];
-            const type = student.types[i];
+        for (let i = 1; i <= 10; i++) {
+            const choice = student.choices?.[i];
+            if (!choice) continue;
 
-            if (!spec || !type) continue;
-
+            const spec = choice.specialty;
+            const type = choice.type;
             const seatKey = typeMap(type);
 
-            if (seats[spec][seatKey] > 0) {
+            if (!spec || !seatKey) continue;
+            if (!seats[spec]) continue;
+            if (seats[spec][seatKey] === undefined) continue;
+
+            if (Number(seats[spec][seatKey]) > 0) {
+
                 seats[spec][seatKey]--;
 
-                accepted.push({
+                results[student.exam] = {
+                    accepted: true,
                     name: student.name,
                     exam: student.exam,
-                    grade: student.grade,
+                    score: Number(student.score),
                     specialty: spec,
-                    seatType: type,
-                    choiceNumber: i + 1
-                });
+                    type: type,
+                    choiceNumber: i
+                };
 
                 if (!minScores[spec])
-                    minScores[spec] = { general: "-", parallel: "-", health: "-" };
+                    minScores[spec] = { عام: "—", موازي: "—", صحة: "—" };
 
-                minScores[spec][seatKey] = student.grade;
+                const currentMin = minScores[spec][seatKey];
+                if (currentMin === "—" || Number(student.score) < Number(currentMin)) {
+                    minScores[spec][seatKey] = Number(student.score);
+                }
 
                 assigned = true;
                 break;
@@ -348,146 +354,27 @@ function updateResults() {
         }
 
         if (!assigned) {
-            rejected.push({
+            results[student.exam] = {
+                accepted: false,
                 name: student.name,
                 exam: student.exam,
-                grade: student.grade,
-                reason: "لم يحصل على أي رغبة"
-            });
+                score: Number(student.score)
+            };
         }
     });
 
-    fillMin(minScores);
-    fillAcceptedBySpec(accepted);
-    fillFinal(accepted);
-    fillRejected(rejected);
+    await db.ref("results").set(results);
+    await db.ref("seats_used").set(seats);
+    await db.ref("min_scores").set(minScores);
 
-    // حفظ الحد الأدنى ليستعمله results.html
-    localStorage.setItem("minScores", JSON.stringify(minScores));
-}
-
-// الحد الأدنى
-function fillMin(minScores) {
-    const table = document.getElementById("minTable");
-    table.innerHTML = `
-        <tr>
-            <th>التخصص</th>
-            <th>العام</th>
-            <th>الموازي</th>
-            <th>الصحة</th>
-        </tr>
-    `;
-
-    Object.keys(minScores).forEach(spec => {
-        table.innerHTML += `
-            <tr>
-                <td>${spec}</td>
-                <td>${minScores[spec].general}</td>
-                <td>${minScores[spec].parallel}</td>
-                <td>${minScores[spec].health}</td>
-            </tr>
-        `;
-    });
-}
-
-// المقبولون حسب التخصص
-function fillAcceptedBySpec(list) {
-    const table = document.getElementById("acceptedBySpec");
-    table.innerHTML = `
-        <tr>
-            <th>التخصص</th>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>نوع المقعد</th>
-            <th>رقم الرغبة</th>
-        </tr>
-    `;
-
-    list.forEach(s => {
-        table.innerHTML += `
-            <tr>
-                <td>${s.specialty}</td>
-                <td>${s.name}</td>
-                <td>${s.exam}</td>
-                <td>${s.grade}</td>
-                <td>${s.seatType}</td>
-                <td>${s.choiceNumber}</td>
-            </tr>
-        `;
-    });
-}
-
-// الجدول الشامل
-function fillFinal(list) {
-    const table = document.getElementById("finalTable");
-    table.innerHTML = `
-        <tr>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>التخصص</th>
-            <th>نوع المقعد</th>
-            <th>رقم الرغبة</th>
-        </tr>
-    `;
-
-    list.forEach(s => {
-        table.innerHTML += `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.exam}</td>
-                <td>${s.grade}</td>
-                <td>${s.specialty}</td>
-                <td>${s.seatType}</td>
-                <td>${s.choiceNumber}</td>
-            </tr>
-        `;
-    });
-}
-
-// غير المقبولين
-function fillRejected(list) {
-    const table = document.getElementById("rejectedTable");
-    table.innerHTML = `
-        <tr>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>سبب الرفض</th>
-        </tr>
-    `;
-
-    list.forEach(s => {
-        table.innerHTML += `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.exam}</td>
-                <td>${s.grade}</td>
-                <td>${s.reason}</td>
-            </tr>
-        `;
-    });
-}
-
-// تصدير Excel (يدعم العربي)
-function exportExcel() {
-    const table = document.getElementById("finalTable").outerHTML;
-    const utf8Bom = "\uFEFF";
-    const blob = new Blob([utf8Bom + table], {
-        type: "application/vnd.ms-excel;charset=utf-8"
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "results.xls";
-    a.click();
+    alert("تم تحديث النتائج بنجاح");
 }
 
 loadSeats();
-updateResults();
-
+loadStudents();
+loadAccepted();
+loadRejected();
+loadMinScores();
 </script>
 
 </body>
