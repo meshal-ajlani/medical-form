@@ -399,6 +399,7 @@ async function runAcceptance() {
 
     studentsSnap.forEach(s => students.push(s.val()));
 
+    // 🔥 ترتيب الطلاب حسب المعدل
     students.sort((a,b) => Number(b.score) - Number(a.score));
 
     const results = {};
