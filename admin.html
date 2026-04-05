@@ -96,9 +96,11 @@ const specialties = [
 // تحويل نوع المقعد
 function typeMap(type) {
     if (!type) return null;
-    if (type.includes("عام")) return "عام";
-    if (type.includes("موازي")) return "موازي";
-    if (type.includes("صحة")) return "صحة";
+
+    if (type.includes("دراسات عام")) return "عام";
+    if (type.includes("دراسات موازي")) return "موازي";
+    if (type.includes("وزارة الصحة")) return "صحة";
+
     return null;
 }
 
