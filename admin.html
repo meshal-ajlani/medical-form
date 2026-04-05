@@ -209,7 +209,7 @@ button:hover {
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-/* كلمة السر (غير ظاهرة للمستخدم) */
+/* كلمة السر */
 const ADMIN_PASSWORD = "Meshal2025";
 
 /* فحص كلمة السر */
@@ -342,7 +342,7 @@ async function calculateMinScores(results) {
     const minScores = {};
 
     specialties.forEach(spec => {
-        minScores[spec] = { عام: null, موازي: null, صحة: null };
+        minScores[spec] = { عام: "—", موازي: "—", صحة: "—" };
     });
 
     Object.values(results).forEach(r => {
@@ -357,7 +357,7 @@ async function calculateMinScores(results) {
         if (type === "دراسات موازي") key = "موازي";
         if (type === "وزارة الصحة") key = "صحة";
 
-        if (minScores[spec][key] === null || score < minScores[spec][key]) {
+        if (minScores[spec][key] === "—" || score < minScores[spec][key]) {
             minScores[spec][key] = score;
         }
     });
@@ -399,6 +399,7 @@ async function runAcceptance() {
 
             if (seats[spec][seatKey] > 0) {
                 seats[spec][seatKey]--;
+
                 results[st.exam] = {
                     accepted: true,
                     specialty: spec,
@@ -408,8 +409,9 @@ async function runAcceptance() {
                     name: st.name,
                     exam: st.exam
                 };
+
                 accepted = true;
-                break;
+                break; /* 🔥 أهم سطر: يمنع أخذ مقعد من الرغبات التالية */
             }
         }
 
