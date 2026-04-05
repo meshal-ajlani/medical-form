@@ -6,137 +6,58 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
 
 <style>
-/* خلفية عامة بطابع طبي */
 body {
     font-family: "Tajawal", sans-serif;
-    background: linear-gradient(135deg, #e8f5f7 0%, #f4fbfc 100%);
-    padding: 25px;
+    background: #eef7fa;
+    padding: 20px;
 }
-
-/* صندوق المحتوى */
 .container {
-    max-width: 1250px;
+    max-width: 1200px;
     margin: auto;
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 18px;
-    border: 1px solid #d7e8ea;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+    background: #fff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
 }
-
-/* العنوان */
 h1 {
     text-align: center;
     color: #0a6fae;
-    margin-bottom: 30px;
-    font-weight: 800;
-    letter-spacing: 1px;
+    margin-bottom: 25px;
 }
-
-/* الأزرار */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+th, td {
+    border: 1px solid #cfe3e6;
+    padding: 10px;
+    text-align: center;
+}
+th {
+    background: #dff3f6;
+    color: #0a6fae;
+}
+tr:nth-child(even) td {
+    background: #f7fcfd;
+}
 button {
-    padding: 12px 20px;
-    margin: 6px;
-    border: none;
-    border-radius: 10px;
+    padding: 10px 20px;
     background: #0a6fae;
     color: white;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 15px;
-    transition: 0.25s;
-    font-weight: 600;
+    margin: 5px;
 }
 button:hover {
     background: #095e94;
-    transform: translateY(-2px);
 }
-
-/* زر الحذف */
 .delete-btn {
     background: #d9534f;
 }
 .delete-btn:hover {
     background: #b84441;
-}
-
-/* الحقول */
-input {
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #bcd4d7;
-    width: 100%;
-    transition: 0.2s;
-}
-input:focus {
-    border-color: #0a6fae;
-    box-shadow: 0 0 5px rgba(10,111,174,0.3);
-}
-
-/* عناوين الأقسام */
-.section-title {
-    margin-top: 35px;
-    font-size: 22px;
-    color: #0a6fae;
-    font-weight: 800;
-    border-right: 6px solid #0a6fae;
-    padding-right: 12px;
-    margin-bottom: 10px;
-}
-
-/* الجداول */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    background: #ffffff;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-/* رؤوس الجداول */
-th {
-    background: #dff3f6;
-    color: #0a6fae;
-    font-weight: 700;
-    padding: 12px;
-    font-size: 15px;
-    border-bottom: 2px solid #cfe3e6;
-}
-
-/* خلايا الجداول */
-td {
-    padding: 10px;
-    background: #ffffff;
-    border-bottom: 1px solid #e6f2f4;
-    font-size: 14px;
-}
-
-/* صفوف متناوبة */
-tr:nth-child(even) td {
-    background: #f7fcfd;
-}
-
-/* صندوق المقاعد */
-#seatsWrapper {
-    max-height: 300px;
-    overflow-y: scroll;
-    border: 1px solid #cfe3e6;
-    border-radius: 12px;
-    padding: 5px;
-    background: #f7fcfd;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
-}
-
-/* تحسين شريط التمرير */
-#seatsWrapper::-webkit-scrollbar {
-    width: 8px;
-}
-#seatsWrapper::-webkit-scrollbar-thumb {
-    background: #0a6fae;
-    border-radius: 10px;
-}
-#seatsWrapper::-webkit-scrollbar-track {
-    background: #e3f2f4;
 }
 </style>
 </head>
@@ -147,17 +68,10 @@ tr:nth-child(even) td {
 
     <h1>لوحة الإدارة</h1>
 
+    <button onclick="updateResults()">تحديث النتائج</button>
     <button class="delete-btn" onclick="deleteAllStudents()">حذف جميع الطلاب</button>
-    <button onclick="deleteOneStudent()">حذف طالب معيّن</button>
-    <button onclick="exportExcel()">تصدير النتائج كـ Excel</button>
 
-    <div class="section-title">تعديل المقاعد</div>
-    <div id="seatsWrapper">
-        <table id="seatsTable"></table>
-    </div>
-    <button onclick="saveSeats()">حفظ المقاعد</button>
-
-    <div class="section-title">الحد الأدنى</div>
+    <h2 style="color:#0a6fae;">الحد الأدنى</h2>
     <table id="minTable">
         <tr>
             <th>التخصص</th>
@@ -167,20 +81,8 @@ tr:nth-child(even) td {
         </tr>
     </table>
 
-    <div class="section-title">المقبولون حسب كل تخصص</div>
-    <table id="acceptedBySpec">
-        <tr>
-            <th>التخصص</th>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>نوع المقعد</th>
-            <th>رقم الرغبة</th>
-        </tr>
-    </table>
-
-    <div class="section-title">الجدول الشامل</div>
-    <table id="finalTable">
+    <h2 style="color:#0a6fae;">المقبولون</h2>
+    <table id="acceptedTable">
         <tr>
             <th>الاسم</th>
             <th>الرقم الامتحاني</th>
@@ -191,7 +93,7 @@ tr:nth-child(even) td {
         </tr>
     </table>
 
-    <div class="section-title">غير المقبولين</div>
+    <h2 style="color:#0a6fae;">غير المقبولين</h2>
     <table id="rejectedTable">
         <tr>
             <th>الاسم</th>
@@ -205,7 +107,7 @@ tr:nth-child(even) td {
 
 <script>
 
-// التخصصات (بعد إضافة الداخلية العامة + تصحيح الداخلية الرئوية)
+// قائمة التخصصات كاملة
 const specialties = [
     "الداخلية العامة",
     "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
@@ -219,80 +121,6 @@ const specialties = [
     "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
 ];
 
-// تحميل المقاعد
-function loadSeats() {
-    let seats = JSON.parse(localStorage.getItem("seats") || "{}");
-
-    if (Object.keys(seats).length === 0) {
-        specialties.forEach(s => {
-            seats[s] = { general: 0, parallel: 0, health: 0 };
-        });
-        localStorage.setItem("seats", JSON.stringify(seats));
-    }
-
-    const table = document.getElementById("seatsTable");
-    table.innerHTML = `
-        <tr>
-            <th>التخصص</th>
-            <th>العام</th>
-            <th>الموازي</th>
-            <th>الصحة</th>
-        </tr>
-    `;
-
-    Object.keys(seats).forEach(spec => {
-        table.innerHTML += `
-            <tr>
-                <td>${spec}</td>
-                <td><input id="g_${spec}" value="${seats[spec].general}"></td>
-                <td><input id="p_${spec}" value="${seats[spec].parallel}"></td>
-                <td><input id="h_${spec}" value="${seats[spec].health}"></td>
-            </tr>
-        `;
-    });
-}
-
-// حفظ المقاعد
-function saveSeats() {
-    const rows = document.querySelectorAll("#seatsTable tr");
-    const seats = {};
-
-    rows.forEach((row, i) => {
-        if (i === 0) return;
-        const spec = row.children[0].innerText;
-        seats[spec] = {
-            general: Number(row.children[1].children[0].value),
-            parallel: Number(row.children[2].children[0].value),
-            health: Number(row.children[3].children[0].value)
-        };
-    });
-
-    localStorage.setItem("seats", JSON.stringify(seats));
-    alert("تم حفظ المقاعد");
-    updateResults();
-}
-
-// حذف جميع الطلاب
-function deleteAllStudents() {
-    if (confirm("هل تريد حذف جميع الطلاب؟")) {
-        localStorage.removeItem("students");
-        updateResults();
-    }
-}
-
-// حذف طالب معيّن
-function deleteOneStudent() {
-    const exam = prompt("أدخل الرقم الامتحاني للطالب:");
-    if (!exam) return;
-
-    let students = JSON.parse(localStorage.getItem("students") || "[]");
-    students = students.filter(s => s.exam !== exam);
-
-    localStorage.setItem("students", JSON.stringify(students));
-    alert("تم حذف الطالب");
-    updateResults();
-}
-
 // تحويل نوع المقعد
 function typeMap(type) {
     if (type.includes("عام")) return "general";
@@ -300,19 +128,30 @@ function typeMap(type) {
     return "health";
 }
 
-// التوزيع النهائي الصحيح
+// حذف الطلاب
+function deleteAllStudents() {
+    if (confirm("هل تريد حذف جميع الطلاب؟")) {
+        localStorage.removeItem("students");
+        updateResults();
+    }
+}
+
+// تحديث النتائج
 function updateResults() {
     const students = JSON.parse(localStorage.getItem("students") || "[]");
-    const seatsOriginal = JSON.parse(localStorage.getItem("seats") || "{}");
 
-    const seats = JSON.parse(JSON.stringify(seatsOriginal));
+    // ترتيب الطلاب حسب المعدل
+    students.sort((a, b) => b.grade - a.grade);
+
+    // المقاعد الافتراضية (يمكنك تعديلها لاحقًا)
+    const seats = {};
+    specialties.forEach(s => {
+        seats[s] = { general: 3, parallel: 3, health: 3 };
+    });
 
     const accepted = [];
     const rejected = [];
     const minScores = {};
-
-    // ترتيب الطلاب حسب المعدل
-    students.sort((a, b) => b.grade - a.grade);
 
     students.forEach(student => {
         let assigned = false;
@@ -358,15 +197,13 @@ function updateResults() {
     });
 
     fillMin(minScores);
-    fillAcceptedBySpec(accepted);
-    fillFinal(accepted);
+    fillAccepted(accepted);
     fillRejected(rejected);
 
-    // حفظ الحد الأدنى ليستعمله results.html
     localStorage.setItem("minScores", JSON.stringify(minScores));
 }
 
-// الحد الأدنى
+// تعبئة الحد الأدنى
 function fillMin(minScores) {
     const table = document.getElementById("minTable");
     table.innerHTML = `
@@ -390,37 +227,9 @@ function fillMin(minScores) {
     });
 }
 
-// المقبولون حسب التخصص
-function fillAcceptedBySpec(list) {
-    const table = document.getElementById("acceptedBySpec");
-    table.innerHTML = `
-        <tr>
-            <th>التخصص</th>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>نوع المقعد</th>
-            <th>رقم الرغبة</th>
-        </tr>
-    `;
-
-    list.forEach(s => {
-        table.innerHTML += `
-            <tr>
-                <td>${s.specialty}</td>
-                <td>${s.name}</td>
-                <td>${s.exam}</td>
-                <td>${s.grade}</td>
-                <td>${s.seatType}</td>
-                <td>${s.choiceNumber}</td>
-            </tr>
-        `;
-    });
-}
-
-// الجدول الشامل
-function fillFinal(list) {
-    const table = document.getElementById("finalTable");
+// المقبولون
+function fillAccepted(list) {
+    const table = document.getElementById("acceptedTable");
     table.innerHTML = `
         <tr>
             <th>الاسم</th>
@@ -470,22 +279,6 @@ function fillRejected(list) {
     });
 }
 
-// تصدير Excel (يدعم العربي)
-function exportExcel() {
-    const table = document.getElementById("finalTable").outerHTML;
-    const utf8Bom = "\uFEFF";
-    const blob = new Blob([utf8Bom + table], {
-        type: "application/vnd.ms-excel;charset=utf-8"
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "results.xls";
-    a.click();
-}
-
-loadSeats();
 updateResults();
 
 </script>
