@@ -101,9 +101,30 @@ button:hover {
     padding: 10px;
     border-radius: 8px;
 }
+
+/* زر تحديث النتائج */
+#floatingBtn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #2563eb;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 9999;
+}
+#floatingBtn:hover {
+    background: #1d4ed8;
+}
 </style>
 </head>
 <body>
+
+<!-- زر تحديث النتائج -->
+<div id="floatingBtn" onclick="runAcceptance()">تحديث النتائج</div>
 
 <!-- شاشة تسجيل الدخول -->
 <div id="loginBox">
@@ -365,7 +386,7 @@ async function calculateMinScores(results) {
     await db.ref("min_scores").set(minScores);
 }
 
-/* تنفيذ القبول التلقائي */
+/* تنفيذ القبول */
 async function runAcceptance() {
     const seatsSnap = await db.ref("seats").once("value");
     const seatsOriginal = seatsSnap.val() || {};
@@ -518,11 +539,6 @@ function loadMinScores() {
         });
     });
 }
-
-/* تشغيل القبول تلقائيًا */
-db.ref("students").on("value", () => {
-    runAcceptance();
-});
 
 /* تحميل كل شيء */
 loadSeats();
