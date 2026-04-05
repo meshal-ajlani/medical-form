@@ -8,45 +8,53 @@
   <style>
     :root{--bg:#f4fbff;--card:#fff;--accent:#0b6b8f;--muted:#6b7c86}
     body{font-family:'Cairo',sans-serif;background:linear-gradient(180deg,#eaf7fb,#f4fbff);margin:0;padding:20px;color:#123}
-    .container{max-width:900px;margin:20px auto;padding:24px;background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06)}
+    .container{max-width:980px;margin:20px auto;padding:24px;background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06)}
     h1{color:var(--accent);margin:0 0 12px}
     .row{display:flex;gap:12px;flex-wrap:wrap}
     input,select,button{padding:10px;border:1px solid #e0eef2;border-radius:8px;width:100%;box-sizing:border-box}
     label{font-size:14px;color:var(--muted);margin-bottom:6px;display:block}
     .col{flex:1 1 200px;min-width:180px}
-    .prefs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .prefs{display:grid;grid-template-columns:repeat(1,1fr);gap:10px}
+    .pref-row{display:flex;gap:8px;align-items:center}
+    .pref-row select{flex:1}
+    .pref-row .type-select{width:170px}
     .note{background:#eef9fb;padding:10px;border-radius:8px;color:var(--muted);margin-top:12px}
     button{background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;padding:10px 14px}
+    .small{font-size:13px;color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="container">
     <h1>تسجيل مفاضلة الطب البشري</h1>
+    <p class="small">أمام كل رغبة اختر التخصص ونوع التخصص الخاص بها.</p>
+
     <form id="studentForm">
       <div class="row">
-        <div class="col"><label>الاسم الكامل</label><input id="name" required /></div>
-        <div class="col"><label>الرقم الامتحاني</label><input id="examNo" required /></div>
-        <div class="col"><label>المعدل</label><input id="score" type="number" step="0.01" required /></div>
         <div class="col">
-          <label>نوع التخصص</label>
-          <select id="type">
-            <option value="عام">دراسات عليا عام</option>
-            <option value="موازي">دراسات عليا موازي</option>
-            <option value="وزارة">وزارة الصحة</option>
-          </select>
+          <label>الاسم الكامل</label>
+          <input id="name" required />
+        </div>
+        <div class="col">
+          <label>الرقم الامتحاني</label>
+          <input id="examNo" required />
+        </div>
+        <div class="col">
+          <label>المعدل</label>
+          <input id="score" type="number" step="0.01" required />
         </div>
       </div>
 
-      <div style="margin-top:12px">
-        <label>الرغبات (حتى 10)</label>
+      <div style="margin-top:14px">
+        <label>الرغبات (حتى 10) اختر التخصص ونوع التخصص لكل رغبة</label>
         <div id="prefsContainer" class="prefs"></div>
       </div>
 
       <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
         <button type="submit">إرسال</button>
-        <div id="status" style="color:var(--muted)"></div>
+        <div id="status" class="small"></div>
       </div>
-      <div class="note">تصميم بسيط. يمكنك تعديل أو حذف التسجيل لاحقاً من واجهة الإدارة.</div>
+
+      <div class="note">تخزين الرغبات سيكون بالشكل: [{ "specialty":"...", "type":"عام" }, ...]</div>
     </form>
   </div>
 
@@ -54,6 +62,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+    // ضع هنا إعدادات مشروعك
     const firebaseConfig = {
       apiKey: "API_KEY",
       authDomain: "PROJECT.firebaseapp.com",
@@ -61,9 +70,11 @@
       projectId: "PROJECT",
       appId: "APP_ID"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // قائمة التخصصات
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -73,37 +84,99 @@
       "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
     ];
 
+    // أنواع التخصص لكل رغبة
+    const types = [
+      { value: "عام", label: "دراسات عليا عام" },
+      { value: "موازي", label: "دراسات عليا موازي" },
+      { value: "وزارة", label: "وزارة الصحة" }
+    ];
+
     const prefsContainer = document.getElementById('prefsContainer');
-    for (let i=1;i<=10;i++){
-      const sel = document.createElement('select');
-      sel.id = 'pref'+i;
-      const empty = document.createElement('option'); empty.value=''; empty.textContent = `${i} - لا اختيار`;
-      sel.appendChild(empty);
-      specialties.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
-      prefsContainer.appendChild(sel);
+
+    // أنشئ 10 صفوف رغبة، كل صف يحتوي على اختيار التخصص واختيار النوع
+    for (let i = 1; i <= 10; i++) {
+      const row = document.createElement('div');
+      row.className = 'pref-row';
+
+      const specSelect = document.createElement('select');
+      specSelect.id = `pref_spec_${i}`;
+      const emptySpec = document.createElement('option'); emptySpec.value = ''; emptySpec.textContent = `${i} - لا اختيار`; specSelect.appendChild(emptySpec);
+      specialties.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; specSelect.appendChild(o); });
+
+      const typeSelect = document.createElement('select');
+      typeSelect.id = `pref_type_${i}`;
+      typeSelect.className = 'type-select';
+      const emptyType = document.createElement('option'); emptyType.value = ''; emptyType.textContent = 'اختر النوع'; typeSelect.appendChild(emptyType);
+      types.forEach(t => { const o = document.createElement('option'); o.value = t.value; o.textContent = t.label; typeSelect.appendChild(o); });
+
+      // زر لإزالة هذه الرغبة بسرعة
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'إزالة';
+      removeBtn.style.width = '36px';
+      removeBtn.style.height = '36px';
+      removeBtn.style.borderRadius = '8px';
+      removeBtn.style.background = '#f2f6f8';
+      removeBtn.style.border = '1px solid #e0eef2';
+      removeBtn.addEventListener('click', () => { specSelect.value = ''; typeSelect.value = ''; });
+
+      row.appendChild(specSelect);
+      row.appendChild(typeSelect);
+      row.appendChild(removeBtn);
+      prefsContainer.appendChild(row);
     }
 
     const form = document.getElementById('studentForm');
     const status = document.getElementById('status');
 
-    form.addEventListener('submit', async (e)=>{
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       status.textContent = 'جاري الإرسال...';
+
       const name = document.getElementById('name').value.trim();
       const examNo = document.getElementById('examNo').value.trim();
       const score = parseFloat(document.getElementById('score').value);
-      const type = document.getElementById('type').value;
-      const prefs = [];
-      for (let i=1;i<=10;i++){ const v = document.getElementById('pref'+i).value; if (v) prefs.push(v); }
-      if (!name || !examNo || isNaN(score) || prefs.length===0){ status.textContent='تأكد من تعبئة الحقول الأساسية ورغبة واحدة على الأقل.'; return; }
 
+      if (!name || !examNo || isNaN(score)) {
+        status.textContent = 'تأكد من تعبئة الاسم، الرقم، والمعدل.';
+        return;
+      }
+
+      // اجمع الرغبات كمصفوفة من الكائنات { specialty, type }
+      const prefs = [];
+      for (let i = 1; i <= 10; i++) {
+        const spec = document.getElementById(`pref_spec_${i}`).value;
+        const type = document.getElementById(`pref_type_${i}`).value;
+        if (spec && type) {
+          prefs.push({ specialty: spec, type: type });
+        }
+      }
+
+      if (prefs.length === 0) {
+        status.textContent = 'اختر رغبة واحدة على الأقل مع نوعها.';
+        return;
+      }
+
+      // ادفع البيانات إلى Realtime Database
       const studentsRef = ref(db, 'students');
       const newRef = push(studentsRef);
-      await set(newRef, { name, examNo, score, type, prefs, createdAt: Date.now() });
+      await set(newRef, {
+        name,
+        examNo,
+        score,
+        prefs,
+        createdAt: Date.now()
+      });
+
       status.textContent = 'تم التسجيل بنجاح.';
       form.reset();
-      for (let i=1;i<=10;i++) document.getElementById('pref'+i).value = '';
-      setTimeout(()=> status.textContent = '', 3000);
+      // إعادة تعيين القوائم
+      for (let i = 1; i <= 10; i++) {
+        document.getElementById(`pref_spec_${i}`).value = '';
+        document.getElementById(`pref_type_${i}`).value = '';
+      }
+      setTimeout(() => status.textContent = '', 3000);
     });
   </script>
 </body>
