@@ -157,14 +157,19 @@ async function runAcceptance() {
     console.clear();
     console.log("🚀 بدء عملية القبول…");
 
+    // تحميل المقاعد
     const seatsSnap = await db.ref("seats").once("value");
     const seats = seatsSnap.val() || {};
 
+    // تحميل الطلاب
     const studentsSnap = await db.ref("students").once("value");
     const students = [];
     studentsSnap.forEach(s => students.push(s.val()));
 
+    // تحويل المعدل إلى رقم
     students.forEach(s => s.score = Number(s.score));
+
+    // ترتيب الطلاب من الأعلى للأدنى
     students.sort((a, b) => b.score - a.score);
 
     const results = {};
@@ -175,9 +180,13 @@ async function runAcceptance() {
         const examKey = String(st.exam);
         let assigned = false;
 
-        for (let i = 1; i <= 10; i++) {
+        // 🔥 الحصول على عدد الرغبات الحقيقي
+        const choices = st.choices || {};
+        const choiceNumbers = Object.keys(choices).sort((a, b) => Number(a) - Number(b));
 
-            const choice = st.choices?.[i];
+        for (const num of choiceNumbers) {
+
+            const choice = choices[num];
             if (!choice) continue;
 
             const spec = choice.specialty;
@@ -200,9 +209,10 @@ async function runAcceptance() {
                     score: st.score,
                     specialty: spec,
                     type: type,
-                    choiceNumber: i
+                    choiceNumber: Number(num)
                 };
 
+                // تحديث الحد الأدنى
                 if (!minScores[spec])
                     minScores[spec] = { عام: "—", موازي: "—", صحة: "—" };
 
@@ -215,6 +225,7 @@ async function runAcceptance() {
             }
         }
 
+        // إذا لم يُقبل
         if (!assigned) {
             results[examKey] = {
                 accepted: false,
@@ -225,67 +236,10 @@ async function runAcceptance() {
         }
     }
 
+    // حفظ النتائج
     await db.ref("results").set(results);
     await db.ref("min_scores").set(minScores);
     await db.ref("seats_used").set(seats);
 
     console.log("📌 النتائج النهائية:", results);
 }
-
-// تحميل النتائج
-function loadResults() {
-    db.ref("results").on("value", snap => {
-        const table = document.getElementById("resultsTable");
-        table.innerHTML = `
-            <tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>التخصص</th><th>نوع المقعد</th><th>الرغبة</th><th>حذف</th></tr>
-        `;
-
-        snap.forEach(s => {
-            const r = s.val();
-            if (!r.accepted) return;
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${r.name}</td>
-                <td>${r.exam}</td>
-                <td>${r.score}</td>
-                <td>${r.specialty}</td>
-                <td>${r.type}</td>
-                <td>${r.choiceNumber}</td>
-                <td><button onclick="deleteStudent('${r.exam}')">حذف</button></td>
-            `;
-            table.appendChild(row);
-        });
-    });
-}
-
-// تحميل الحد الأدنى
-function loadMin() {
-    db.ref("min_scores").on("value", snap => {
-        const table = document.getElementById("minTable");
-        table.innerHTML = `
-            <tr><th>التخصص</th><th>عام</th><th>موازي</th><th>صحة</th></tr>
-        `;
-        const data = snap.val() || {};
-        specialties.forEach(spec => {
-            const m = data[spec] || { عام: "—", موازي: "—", صحة: "—" };
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${spec}</td>
-                <td>${m.عام}</td>
-                <td>${m.موازي}</td>
-                <td>${m.صحة}</td>
-            `;
-            table.appendChild(row);
-        });
-    });
-}
-
-// تشغيل تلقائي
-loadSeats();
-runAcceptance();
-loadResults();
-loadMin();
-</script>
-
-</body>
-</html>
