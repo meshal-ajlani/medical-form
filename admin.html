@@ -27,13 +27,14 @@
     .row{display:flex;gap:12px;flex-wrap:wrap}
     .col{flex:1 1 300px;min-width:220px}
     .log{font-family:monospace;font-size:13px;color:#444;white-space:pre-wrap}
+    .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>لوحة الإدارة - مفاضلة الطب البشري</h1>
-      <p class="small">تعمل هذه الواجهة مع Realtime Database. راقب Console لمخرجات التصحيح عند تشغيل المفاضلة.</p>
+      <p class="small">واجهة إدارة بسيطة للعمل مع Realtime Database. راقب Console وسجل التشغيل المصغر أسفل الصفحة.</p>
     </div>
 
     <div class="card">
@@ -41,17 +42,18 @@
       <div class="small">اضبط عدد المقاعد لكل تخصص ولكل نوع ثم اضغط حفظ.</div>
       <div id="seatsContainer" class="list" style="margin-top:12px"></div>
 
-      <div class="controls">
+      <div class="controls top-actions">
         <button id="saveSeatsBtn">حفظ المقاعد</button>
         <button id="runAlgoBtn">تشغيل آلية المفاضلة</button>
         <button id="loadBtn">إعادة تحميل البيانات</button>
         <button id="clearAllBtn" class="danger">حذف جميع الطلاب</button>
+        <div id="statusBadge" class="badge">جاهز</div>
       </div>
     </div>
 
     <div class="card">
       <h3>الحد الأدنى للمعدل لكل تخصص ونوع</h3>
-      <div id="minScoresTable" class="list" style="padding:12px"></div>
+      <div id="minScoresTable" class="list" style="padding:12px">لا توجد نتائج</div>
     </div>
 
     <div class="card">
@@ -59,18 +61,18 @@
       <div class="row">
         <div class="col">
           <h4>المقبولون</h4>
-          <div id="acceptedList" class="list"></div>
+          <div id="acceptedList" class="list">لا توجد نتائج</div>
         </div>
         <div class="col">
           <h4>المرفوضون</h4>
-          <div id="rejectedList" class="list"></div>
+          <div id="rejectedList" class="list">لا توجد نتائج</div>
         </div>
       </div>
     </div>
 
     <div class="card">
       <h3>قائمة الطلاب (قابلة للحذف)</h3>
-      <div id="studentsTable" class="list"></div>
+      <div id="studentsTable" class="list">لا يوجد طلاب</div>
     </div>
 
     <div class="card">
@@ -99,7 +101,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app, firebaseConfig.databaseURL);
 
-    // التخصصات وأنواع المقاعد
+    // التخصصات وأنواع المقاعد (تأكد أن هذه الأسماء تطابق مفاتيح /seats في DB)
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -122,11 +124,17 @@
     const rejectedList = document.getElementById('rejectedList');
     const minScoresTable = document.getElementById('minScoresTable');
     const miniLog = document.getElementById('miniLog');
+    const statusBadge = document.getElementById('statusBadge');
 
     function logMini(msg){
       const time = new Date().toLocaleTimeString();
       miniLog.textContent = `[${time}] ${msg}\n` + miniLog.textContent;
       console.log(msg);
+    }
+    function setStatus(text, color){
+      statusBadge.textContent = text;
+      if (color) statusBadge.style.background = color;
+      else statusBadge.style.background = '';
     }
 
     // بناء واجهة إدخال المقاعد
@@ -167,9 +175,11 @@
           inp.value = (data[s] && data[s][t] !== undefined) ? data[s][t] : 0;
         });
         logMini('تم تحميل المقاعد.');
+        setStatus('مقاعد محمّلة', '#dff0d8');
       } catch (err) {
         console.error('loadSeats error', err);
         logMini('خطأ عند تحميل المقاعد. افتح Console.');
+        setStatus('خطأ تحميل المقاعد', '#f8d7da');
       }
     }
 
@@ -186,10 +196,12 @@
         });
         await set(ref(db, 'seats'), seatsObj);
         logMini('تم حفظ المقاعد إلى /seats.');
+        setStatus('تم حفظ المقاعد', '#dff0d8');
         alert('تم حفظ المقاعد.');
       } catch (err) {
         console.error('saveSeats error', err);
         logMini('فشل حفظ المقاعد. افتح Console.');
+        setStatus('فشل حفظ المقاعد', '#f8d7da');
         alert('فشل حفظ المقاعد. افتح Console للمزيد.');
       }
     });
@@ -228,8 +240,13 @@
         b.addEventListener('click', async (e)=>{
           const id = e.target.dataset.id;
           if (!confirm('هل تريد حذف هذا الطالب؟')) return;
-          await remove(ref(db, `students/${id}`));
-          logMini(`حُذف الطالب: ${id}`);
+          try {
+            await remove(ref(db, `students/${id}`));
+            logMini(`حُذف الطالب: ${id}`);
+          } catch (err) {
+            console.error('delete student error', err);
+            logMini('فشل حذف الطالب. افتح Console.');
+          }
         });
       });
     }
@@ -243,10 +260,12 @@
         await loadStudents();
         renderResultsEmpty();
         logMini('تم حذف جميع الطلاب والنتائج.');
+        setStatus('تم حذف الكل', '#fff3cd');
         alert('تم حذف جميع الطلاب والنتائج.');
       } catch (err) {
         console.error('clearAll error', err);
         logMini('فشل حذف الكل. افتح Console.');
+        setStatus('فشل حذف الكل', '#f8d7da');
       }
     });
 
@@ -254,12 +273,15 @@
     runAlgoBtn.addEventListener('click', async () => {
       try {
         logMini('بدء تشغيل المفاضلة...');
+        setStatus('تشغيل...', '#cce5ff');
+
         const seatsSnap = await get(ref(db, 'seats'));
         const studentsSnap = await get(ref(db, 'students'));
 
         if (!seatsSnap.exists()) {
           logMini('لا توجد بيانات في /seats. أوقف التشغيل.');
           alert('لا توجد بيانات للمقاعد. تأكد من تعبئة /seats أولاً.');
+          setStatus('لا توجد مقاعد', '#f8d7da');
           return;
         }
 
@@ -270,6 +292,7 @@
         if (students.length === 0) {
           logMini('لا يوجد طلاب للتشغيل.');
           alert('لا يوجد طلاب للتشغيل.');
+          setStatus('لا يوجد طلاب', '#fff3cd');
           return;
         }
 
@@ -358,117 +381,100 @@
 
         await set(ref(db, 'results'), resultsPayload);
         logMini('تم حفظ النتائج في /results.');
+        setStatus('انتهت المفاضلة', '#d4edda');
         renderResults(resultsPayload);
         alert('انتهت عملية المفاضلة. النتائج محفوظة في /results');
 
       } catch (err) {
         console.error('خطأ أثناء تشغيل المفاضلة:', err);
         logMini('خطأ أثناء تشغيل المفاضلة. افتح Console للمزيد.');
+        setStatus('خطأ أثناء التشغيل', '#f8d7da');
         alert('حدث خطأ أثناء تشغيل المفاضلة. افتح Console للمزيد.');
       }
     });
 
     // عرض النتائج من DB
-    (async function debugAndRunAllocation(){
-  try {
-    // نفترض أن الصفحة تحتوي على متغير db (getDatabase) كما في الكود
-    if (typeof db === 'undefined') {
-      console.error('لم أجد متغير db في الصفحة. تأكد أن admin.html محمّل ويستخدم نفس الكود الذي أرسلتُه.');
-      return;
+    async function loadResults(){
+      try {
+        const snap = await get(ref(db, 'results'));
+        if (!snap.exists()){ renderResultsEmpty(); return; }
+        renderResults(snap.val());
+        logMini('تم تحميل النتائج من /results.');
+      } catch (err) {
+        console.error('loadResults error', err);
+        logMini('خطأ عند تحميل النتائج. افتح Console.');
+      }
     }
-    const { ref, get, set } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
 
-    // جلب البيانات
-    const seatsSnap = await get(ref(db, 'seats'));
-    const studentsSnap = await get(ref(db, 'students'));
-    console.log('--- Debug: raw seats and students ---');
-    console.log('seats exists:', seatsSnap.exists());
-    console.log('seats value:', seatsSnap.exists() ? seatsSnap.val() : null);
-    console.log('students exists:', studentsSnap.exists());
-    console.log('students value:', studentsSnap.exists() ? studentsSnap.val() : null);
+    function renderResultsEmpty(){
+      acceptedList.innerHTML = '<div class="small muted">لا توجد نتائج</div>';
+      rejectedList.innerHTML = '<div class="small muted">لا توجد نتائج</div>';
+      minScoresTable.innerHTML = '<div class="small muted">لا توجد نتائج</div>';
+    }
 
-    const seats = seatsSnap.exists() ? seatsSnap.val() : {};
-    const studentsObj = studentsSnap.exists() ? studentsSnap.val() : {};
-    const students = Object.entries(studentsObj).map(([id, s]) => ({ id, ...s }));
+    function renderResults(data){
+      const acc = Object.values(data.accepted || {});
+      const rej = Object.values(data.rejected || {});
 
-    // تحقق من صيغة prefs لكل طالب
-    console.log('--- Checking student prefs format ---');
-    students.forEach(s => {
-      if (!Array.isArray(s.prefs)) {
-        console.warn(`طالب ${s.name || s.id} ليس لديه prefs كمصفوفة:`, s.prefs);
-      } else {
-        s.prefs.forEach((p, idx) => {
-          if (!p || typeof p.specialty !== 'string' || typeof p.type !== 'string') {
-            console.warn(`طالب ${s.name || s.id} - رغبة ${idx+1} غير صحيحة:`, p);
-          }
+      acceptedList.innerHTML = acc.length ? acc.map(a=>`<div><strong>${escapeHtml(a.name)}</strong> — ${a.score} — ${escapeHtml(a.assigned)} (${escapeHtml(a.assignedType)})</div>`).join('') : '<div class="small muted">لا يوجد مقبولون</div>';
+      rejectedList.innerHTML = rej.length ? rej.map(r=>`<div>${escapeHtml(r.name)} — ${r.score}</div>`).join('') : '<div class="small muted">لا يوجد مرفوضون</div>';
+
+      const minScores = data.minScores || {};
+      let html = '<table><thead><tr><th>التخصص</th>';
+      types.forEach(t=> html += `<th>${t}</th>`);
+      html += '</tr></thead><tbody>';
+      specialties.forEach(s=>{
+        html += `<tr><td>${s}</td>`;
+        types.forEach(t=>{
+          const v = (minScores[s] && minScores[s][t] !== undefined) ? minScores[s][t] : null;
+          html += `<td>${v === null ? '-' : v}</td>`;
         });
-      }
-    });
-
-    // محاكاة سريعة للمفاضلة (نفس المنطق في admin.html)
-    const validTypes = ['عام','موازي','وزارة'];
-    const seatsLeft = {};
-    Object.keys(seats).forEach(spec => {
-      seatsLeft[spec] = {};
-      validTypes.forEach(t => seatsLeft[spec][t] = Number((seats[spec] && seats[spec][t]) ? seats[spec][t] : 0));
-    });
-
-    // ترتيب الطلاب تنازلياً حسب score
-    students.forEach(s => s.score = Number(s.score) || 0);
-    students.sort((a,b) => b.score - a.score);
-
-    const accepted = {};
-    const rejected = {};
-    const seatNames = new Set(Object.keys(seatsLeft));
-
-    for (const stu of students) {
-      let assigned = null, assignedType = null;
-      if (Array.isArray(stu.prefs)) {
-        for (const pref of stu.prefs) {
-          if (!pref || !pref.specialty || !pref.type) continue;
-          const spec = pref.specialty;
-          const typ = pref.type;
-          if (!seatNames.has(spec)) {
-            console.warn(`تخصص غير موجود في seats: "${spec}" (طالب: ${stu.name})`);
-            continue;
-          }
-          if (!validTypes.includes(typ)) {
-            console.warn(`نوع غير صالح: "${typ}" (طالب: ${stu.name})`);
-            continue;
-          }
-          if (seatsLeft[spec][typ] > 0) {
-            seatsLeft[spec][typ] -= 1;
-            assigned = spec; assignedType = typ;
-            break;
-          }
-        }
-      } else {
-        console.warn(`طالب ${stu.name} لا يملك prefs صالحة.`);
-      }
-      if (assigned) accepted[stu.id] = { id: stu.id, name: stu.name, examNo: stu.examNo, score: stu.score, assigned, assignedType };
-      else rejected[stu.id] = { id: stu.id, name: stu.name, examNo: stu.examNo, score: stu.score };
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      minScoresTable.innerHTML = html;
     }
 
-    // حساب minScores
-    const minScores = {};
-    Object.keys(seatsLeft).forEach(spec => {
-      minScores[spec] = {};
-      validTypes.forEach(t => {
-        const arr = Object.values(accepted).filter(a => a.assigned === spec && a.assignedType === t);
-        minScores[spec][t] = arr.length ? Math.min(...arr.map(x => Number(x.score))) : null;
+    // مراقبة التغييرات الحية
+    onValue(ref(db, 'results'), snap => {
+      if (snap.exists()) renderResults(snap.val());
+      else renderResultsEmpty();
+    });
+    onValue(ref(db, 'students'), snap => {
+      const data = snap.exists() ? snap.val() : {};
+      renderStudentsTable(data);
+    });
+    onValue(ref(db, 'seats'), snap => {
+      const data = snap.exists() ? snap.val() : {};
+      document.querySelectorAll('[data-spec]').forEach(inp=>{
+        const s = inp.dataset.spec; const t = inp.dataset.type;
+        inp.value = (data[s] && data[s][t] !== undefined) ? data[s][t] : inp.value;
       });
     });
 
-    const resultsPayload = { generatedAt: Date.now(), seatsLeft, accepted, rejected, minScores };
-    console.log('--- Allocation result (will be written to /results) ---', resultsPayload);
+    // أزرار مساعدة
+    loadBtn.addEventListener('click', async ()=>{
+      await loadSeats();
+      await loadStudents();
+      await loadResults();
+      alert('تم إعادة تحميل البيانات.');
+    });
 
-    // اكتب النتائج إلى /results
-    await set(ref(db, 'results'), resultsPayload);
-    console.log('تم حفظ النتائج في /results بنجاح.');
-    alert('تم تشغيل المفاضلة وكتابة النتائج إلى /results. افتح لوحة الإدارة أو Console لرؤية التفاصيل.');
+    // تحميل أولي
+    await loadSeats();
+    await loadStudents();
+    await loadResults();
 
-  } catch (err) {
-    console.error('خطأ في debugAndRunAllocation:', err);
-    alert('حدث خطأ أثناء التشغيل. افتح Console لعرض التفاصيل.');
-  }
-})();
+    // دالة مساعدة للهروب من XSS عند عرض نصوص المستخدم
+    function escapeHtml(text){
+      if (text === undefined || text === null) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
