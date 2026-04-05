@@ -8,25 +8,27 @@
   <style>
     :root{--bg:#f4fbff;--card:#fff;--accent:#0b6b8f;--muted:#6b7c86}
     body{font-family:'Cairo',sans-serif;background:linear-gradient(180deg,#eaf7fb,#f4fbff);margin:0;padding:20px;color:#123}
-    .container{max-width:980px;margin:20px auto;padding:24px;background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06)}
+    .container{max-width:980px;margin:20px auto;padding:24px;background:var(--card);border-radius:12px;box-shadow:0 8px 30px rgba(10,30,40,0.06)}
     h1{color:var(--accent);margin:0 0 12px}
     .row{display:flex;gap:12px;flex-wrap:wrap}
     input,select,button{padding:10px;border:1px solid #e0eef2;border-radius:8px;width:100%;box-sizing:border-box}
     label{font-size:14px;color:var(--muted);margin-bottom:6px;display:block}
     .col{flex:1 1 200px;min-width:180px}
-    .prefs{display:grid;grid-template-columns:repeat(1,1fr);gap:10px}
+    .prefs{display:grid;grid-template-columns:1fr;gap:10px}
     .pref-row{display:flex;gap:8px;align-items:center}
     .pref-row select{flex:1}
-    .pref-row .type-select{width:170px}
+    .type-select{width:170px}
+    .remove-btn{width:36px;height:36px;border-radius:8px;background:#f2f6f8;border:1px solid #e0eef2;cursor:pointer}
     .note{background:#eef9fb;padding:10px;border-radius:8px;color:var(--muted);margin-top:12px}
     button{background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;padding:10px 14px}
     .small{font-size:13px;color:var(--muted)}
+    #status{margin-left:8px}
   </style>
 </head>
 <body>
   <div class="container">
     <h1>تسجيل مفاضلة الطب البشري</h1>
-    <p class="small">أمام كل رغبة اختر التخصص ونوع التخصص الخاص بها.</p>
+    <p class="small">أمام كل رغبة اختر التخصص ونوع التخصص (عام / موازي / وزارة الصحة).</p>
 
     <form id="studentForm">
       <div class="row">
@@ -45,34 +47,38 @@
       </div>
 
       <div style="margin-top:14px">
-        <label>الرغبات (حتى 10) اختر التخصص ونوع التخصص لكل رغبة</label>
+        <label>الرغبات (حتى 10) — اختر التخصص ونوع التخصص لكل رغبة</label>
         <div id="prefsContainer" class="prefs"></div>
       </div>
 
-      <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+      <div style="margin-top:14px;display:flex;align-items:center">
         <button type="submit">إرسال</button>
         <div id="status" class="small"></div>
       </div>
 
-      <div class="note">تخزين الرغبات سيكون بالشكل: [{ "specialty":"...", "type":"عام" }, ...]</div>
+      <div class="note">سيتم حفظ الرغبات كمصفوفة من الكائنات: <code>{ "specialty": "...", "type": "عام" }</code></div>
     </form>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, push, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // ضع هنا إعدادات مشروعك
+    // ======= ضع هنا إعدادات مشروعك بالضبط =======
     const firebaseConfig = {
-      apiKey: "API_KEY",
-      authDomain: "PROJECT.firebaseapp.com",
-      databaseURL: "https://PROJECT-default-rtdb.firebaseio.com",
-      projectId: "PROJECT",
-      appId: "APP_ID"
+      apiKey: "AIzaSyBKjw37YQewKBNh_Zl9Mnh1gvy37HZiNF0",
+      authDomain: "medical-form2025.firebaseapp.com",
+      databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "medical-form2025",
+      storageBucket: "medical-form2025.appspot.com",
+      messagingSenderId: "1088878162837",
+      appId: "1:1088878162837:web:d3eea8339ec78cf420fc9c",
+      measurementId: "G-QP6PXM5E8P"
     };
+    // ============================================
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const db = getDatabase(app, firebaseConfig.databaseURL);
 
     // قائمة التخصصات
     const specialties = [
@@ -84,7 +90,6 @@
       "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
     ];
 
-    // أنواع التخصص لكل رغبة
     const types = [
       { value: "عام", label: "دراسات عليا عام" },
       { value: "موازي", label: "دراسات عليا موازي" },
@@ -92,8 +97,9 @@
     ];
 
     const prefsContainer = document.getElementById('prefsContainer');
+    const statusEl = document.getElementById('status');
 
-    // أنشئ 10 صفوف رغبة، كل صف يحتوي على اختيار التخصص واختيار النوع
+    // أنشئ 10 صفوف رغبة
     for (let i = 1; i <= 10; i++) {
       const row = document.createElement('div');
       row.className = 'pref-row';
@@ -109,16 +115,11 @@
       const emptyType = document.createElement('option'); emptyType.value = ''; emptyType.textContent = 'اختر النوع'; typeSelect.appendChild(emptyType);
       types.forEach(t => { const o = document.createElement('option'); o.value = t.value; o.textContent = t.label; typeSelect.appendChild(o); });
 
-      // زر لإزالة هذه الرغبة بسرعة
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
+      removeBtn.className = 'remove-btn';
       removeBtn.textContent = '×';
       removeBtn.title = 'إزالة';
-      removeBtn.style.width = '36px';
-      removeBtn.style.height = '36px';
-      removeBtn.style.borderRadius = '8px';
-      removeBtn.style.background = '#f2f6f8';
-      removeBtn.style.border = '1px solid #e0eef2';
       removeBtn.addEventListener('click', () => { specSelect.value = ''; typeSelect.value = ''; });
 
       row.appendChild(specSelect);
@@ -127,19 +128,29 @@
       prefsContainer.appendChild(row);
     }
 
-    const form = document.getElementById('studentForm');
-    const status = document.getElementById('status');
+    // اختبار اتصال سريع: اطبع الجذر أو الخطأ
+    (async function testConnection(){
+      try {
+        const rootSnap = await get(ref(db, '/'));
+        console.log('RTDB root:', rootSnap.exists() ? 'data exists' : 'empty');
+      } catch (err) {
+        console.error('RTDB connection error:', err);
+        statusEl.textContent = 'خطأ في الاتصال بقاعدة البيانات. افتح Console للمزيد.';
+      }
+    })();
 
+    // إرسال النموذج
+    const form = document.getElementById('studentForm');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      status.textContent = 'جاري الإرسال...';
+      statusEl.textContent = 'جاري الإرسال...';
 
       const name = document.getElementById('name').value.trim();
       const examNo = document.getElementById('examNo').value.trim();
       const score = parseFloat(document.getElementById('score').value);
 
       if (!name || !examNo || isNaN(score)) {
-        status.textContent = 'تأكد من تعبئة الاسم، الرقم، والمعدل.';
+        statusEl.textContent = 'تأكد من تعبئة الاسم، الرقم، والمعدل.';
         return;
       }
 
@@ -148,35 +159,35 @@
       for (let i = 1; i <= 10; i++) {
         const spec = document.getElementById(`pref_spec_${i}`).value;
         const type = document.getElementById(`pref_type_${i}`).value;
-        if (spec && type) {
-          prefs.push({ specialty: spec, type: type });
-        }
+        if (spec && type) prefs.push({ specialty: spec, type });
       }
 
       if (prefs.length === 0) {
-        status.textContent = 'اختر رغبة واحدة على الأقل مع نوعها.';
+        statusEl.textContent = 'اختر رغبة واحدة على الأقل مع نوعها.';
         return;
       }
 
-      // ادفع البيانات إلى Realtime Database
-      const studentsRef = ref(db, 'students');
-      const newRef = push(studentsRef);
-      await set(newRef, {
-        name,
-        examNo,
-        score,
-        prefs,
-        createdAt: Date.now()
-      });
-
-      status.textContent = 'تم التسجيل بنجاح.';
-      form.reset();
-      // إعادة تعيين القوائم
-      for (let i = 1; i <= 10; i++) {
-        document.getElementById(`pref_spec_${i}`).value = '';
-        document.getElementById(`pref_type_${i}`).value = '';
+      try {
+        const studentsRef = ref(db, 'students');
+        const newRef = push(studentsRef);
+        await set(newRef, {
+          name,
+          examNo,
+          score,
+          prefs,
+          createdAt: Date.now()
+        });
+        statusEl.textContent = 'تم التسجيل بنجاح.';
+        form.reset();
+        for (let i = 1; i <= 10; i++) {
+          document.getElementById(`pref_spec_${i}`).value = '';
+          document.getElementById(`pref_type_${i}`).value = '';
+        }
+        setTimeout(()=> statusEl.textContent = '', 3000);
+      } catch (err) {
+        console.error('Write error:', err);
+        statusEl.textContent = 'فشل الإرسال. افتح Console للمزيد.';
       }
-      setTimeout(() => status.textContent = '', 3000);
     });
   </script>
 </body>
