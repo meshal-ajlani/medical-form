@@ -43,6 +43,9 @@ button {
     color: white;
     cursor: pointer;
 }
+.delete-btn {
+    background: #d9534f;
+}
 input {
     padding: 8px;
     width: 250px;
@@ -64,7 +67,7 @@ input {
 
     <!-- أزرار التحكم -->
     <button onclick="runDistribution()">تشغيل التوزيع</button>
-    <button onclick="deleteAllStudents()" style="background:#d9534f;">حذف جميع الطلاب</button>
+    <button class="delete-btn" onclick="deleteAllStudents()">حذف جميع الطلاب</button>
 
     <br><br>
 
