@@ -43,15 +43,6 @@ button {
     color: white;
     cursor: pointer;
 }
-.delete-btn {
-    background: #d9534f;
-}
-input {
-    padding: 8px;
-    width: 250px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
 .section-title {
     margin-top: 30px;
     font-size: 20px;
@@ -65,21 +56,12 @@ input {
 <div class="container">
     <h1>لوحة الإدارة</h1>
 
-    <!-- أزرار التحكم -->
     <button onclick="runDistribution()">تشغيل التوزيع</button>
-    <button class="delete-btn" onclick="deleteAllStudents()">حذف جميع الطلاب</button>
 
-    <br><br>
-
-    <!-- مربع البحث -->
-    <input id="searchBox" type="text" placeholder="ابحث عن طالب بالاسم أو الرقم" oninput="searchStudents()">
-
-    <!-- جدول المقاعد (كما كان تمامًا) -->
     <div class="section-title">تعديل المقاعد</div>
     <table id="seatsTable"></table>
     <button onclick="saveSeats()">حفظ المقاعد</button>
 
-    <!-- الحد الأدنى -->
     <div class="section-title">الحد الأدنى</div>
     <table id="minTable">
         <tr>
@@ -88,7 +70,6 @@ input {
         </tr>
     </table>
 
-    <!-- المقبولون حسب كل تخصص -->
     <div class="section-title">المقبولون حسب كل تخصص</div>
     <table id="acceptedBySpec">
         <tr>
@@ -100,18 +81,6 @@ input {
         </tr>
     </table>
 
-    <!-- غير المقبولين -->
-    <div class="section-title">غير المقبولين</div>
-    <table id="rejectedTable">
-        <tr>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>سبب الرفض</th>
-        </tr>
-    </table>
-
-    <!-- الجدول الشامل -->
     <div class="section-title">الجدول الشامل</div>
     <table id="finalTable">
         <tr>
@@ -127,61 +96,116 @@ input {
 
 <script>
 
-// قراءة الطلاب
-function getStudents() {
-    return JSON.parse(localStorage.getItem("students") || "[]");
+// تحميل المقاعد
+function loadSeats() {
+    fetch("seats.json")
+        .then(r => r.json())
+        .then(data => {
+            const table = document.getElementById("seatsTable");
+            table.innerHTML = `
+                <tr>
+                    <th>التخصص</th>
+                    <th>العام</th>
+                    <th>الموازي</th>
+                    <th>الصحة</th>
+                </tr>
+            `;
+            Object.keys(data).forEach(spec => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${spec}</td>
+                        <td><input id="g_${spec}" value="${data[spec].general}"></td>
+                        <td><input id="p_${spec}" value="${data[spec].parallel}"></td>
+                        <td><input id="h_${spec}" value="${data[spec].health}"></td>
+                    </tr>
+                `;
+            });
+        });
 }
 
-// حذف جميع الطلاب
-function deleteAllStudents() {
-    if (confirm("هل أنت متأكد من حذف جميع الطلاب؟")) {
-        localStorage.removeItem("students");
-        alert("تم حذف جميع الطلاب");
-        location.reload();
-    }
+// حفظ المقاعد
+function saveSeats() {
+    const rows = document.querySelectorAll("#seatsTable tr");
+    const seats = {};
+
+    rows.forEach((row, i) => {
+        if (i === 0) return;
+        const spec = row.children[0].innerText;
+        seats[spec] = {
+            general: Number(row.children[1].children[0].value),
+            parallel: Number(row.children[2].children[0].value),
+            health: Number(row.children[3].children[0].value)
+        };
+    });
+
+    fetch("seats.json", {
+        method: "PUT",
+        body: JSON.stringify(seats)
+    });
+
+    alert("تم حفظ المقاعد");
 }
 
 // تشغيل التوزيع
 function runDistribution() {
-    const students = getStudents();
+    const students = JSON.parse(localStorage.getItem("students") || "[]");
 
     const accepted = [];
-    const rejected = [];
+    const minScores = {};
+    const acceptedBySpec = {};
 
     students.forEach(student => {
-        let assigned = false;
-
         for (let i = 0; i < student.choices.length; i++) {
             if (student.choices[i] !== "" && student.types[i] !== "") {
+                const spec = student.choices[i];
+                const type = student.types[i];
+
                 accepted.push({
                     name: student.name,
                     exam: student.exam,
                     grade: student.grade,
-                    specialty: student.choices[i],
-                    seatType: student.types[i]
+                    specialty: spec,
+                    seatType: type
                 });
-                assigned = true;
+
+                if (!minScores[spec] || student.grade < minScores[spec]) {
+                    minScores[spec] = student.grade;
+                }
+
+                if (!acceptedBySpec[spec]) acceptedBySpec[spec] = [];
+                acceptedBySpec[spec].push(student);
+
                 break;
             }
         }
-
-        if (!assigned) {
-            rejected.push({
-                name: student.name,
-                exam: student.exam,
-                grade: student.grade,
-                reason: "لا يوجد رغبات صالحة"
-            });
-        }
     });
 
-    fillAcceptedBySpec(accepted);
+    fillMin(minScores);
+    fillAcceptedBySpec(acceptedBySpec);
     fillFinal(accepted);
-    fillRejected(rejected);
+}
+
+// الحد الأدنى
+function fillMin(minScores) {
+    const table = document.getElementById("minTable");
+    table.innerHTML = `
+        <tr>
+            <th>التخصص</th>
+            <th>الحد الأدنى</th>
+        </tr>
+    `;
+    Object.keys(minScores).forEach(spec => {
+        table.innerHTML += `
+            <tr>
+                <td>${spec}</td>
+                <td>${minScores[spec]}</td>
+            </tr>
+        `;
+    });
 }
 
 // المقبولون حسب كل تخصص
-function fillAcceptedBySpec(list) {
+function fillAcceptedBySpec(data) {
     const table = document.getElementById("acceptedBySpec");
     table.innerHTML = `
         <tr>
@@ -192,17 +216,18 @@ function fillAcceptedBySpec(list) {
             <th>نوع المقعد</th>
         </tr>
     `;
-
-    list.forEach(s => {
-        table.innerHTML += `
-            <tr>
-                <td>${s.specialty}</td>
-                <td>${s.name}</td>
-                <td>${s.exam}</td>
-                <td>${s.grade}</td>
-                <td>${s.seatType}</td>
-            </tr>
-        `;
+    Object.keys(data).forEach(spec => {
+        data[spec].forEach(s => {
+            table.innerHTML += `
+                <tr>
+                    <td>${spec}</td>
+                    <td>${s.name}</td>
+                    <td>${s.exam}</td>
+                    <td>${s.grade}</td>
+                    <td>${s.types[0]}</td>
+                </tr>
+            `;
+        });
     });
 }
 
@@ -218,7 +243,6 @@ function fillFinal(list) {
             <th>نوع المقعد</th>
         </tr>
     `;
-
     list.forEach(s => {
         table.innerHTML += `
             <tr>
@@ -232,73 +256,7 @@ function fillFinal(list) {
     });
 }
 
-// غير المقبولين
-function fillRejected(list) {
-    const table = document.getElementById("rejectedTable");
-    table.innerHTML = `
-        <tr>
-            <th>الاسم</th>
-            <th>الرقم الامتحاني</th>
-            <th>المعدل</th>
-            <th>سبب الرفض</th>
-        </tr>
-    `;
-
-    list.forEach(s => {
-        table.innerHTML += `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.exam}</td>
-                <td>${s.grade}</td>
-                <td>${s.reason}</td>
-            </tr>
-        `;
-    });
-}
-
-// البحث
-function searchStudents() {
-    const text = document.getElementById("searchBox").value.trim();
-    const students = getStudents();
-
-    const accepted = [];
-    const rejected = [];
-
-    students.forEach(student => {
-        const match = student.name.includes(text) || student.exam.includes(text);
-
-        if (match) {
-            let assigned = false;
-
-            for (let i = 0; i < student.choices.length; i++) {
-                if (student.choices[i] !== "" && student.types[i] !== "") {
-                    accepted.push({
-                        name: student.name,
-                        exam: student.exam,
-                        grade: student.grade,
-                        specialty: student.choices[i],
-                        seatType: student.types[i]
-                    });
-                    assigned = true;
-                    break;
-                }
-            }
-
-            if (!assigned) {
-                rejected.push({
-                    name: student.name,
-                    exam: student.exam,
-                    grade: student.grade,
-                    reason: "لا يوجد رغبات صالحة"
-                });
-            }
-        }
-    });
-
-    fillAcceptedBySpec(accepted);
-    fillFinal(accepted);
-    fillRejected(rejected);
-}
+loadSeats();
 
 </script>
 
