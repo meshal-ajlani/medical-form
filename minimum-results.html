@@ -11,7 +11,7 @@
     :root{
       --bg:#f6fbfd; --card:#fff; --accent:#0b6b8f; --muted:#6b7c86;
       --col-a:#e8f7f9; --col-b:#fff7e6; --col-c:#f7eefc;
-      --sep:#d7e0e4; /* لون الفاصل المتوسط */
+      --sep:#d7e0e4;
       --radius:12px; --shadow:0 10px 30px rgba(10,30,40,0.06);
     }
 
@@ -41,9 +41,8 @@
     thead th.type-b{background:var(--col-b)}
     thead th.type-c{background:var(--col-c)}
     tbody td{padding:10px;border-bottom:2px solid var(--sep);font-size:15px;text-align:right;vertical-align:middle}
-    /* فاصل عمودي متوسط بين الأعمدة (بعد كل عمود) */
+    /* فاصل عمودي متوسط بين الأعمدة */
     thead th + th, tbody td + td { border-right: 2px solid var(--sep); }
-    /* تمييز الصف عند المرور */
     tbody tr:hover{background:rgba(11,107,143,0.03)}
     .spec{font-weight:700}
     .muted{color:var(--muted)}
@@ -58,7 +57,7 @@
   <div class="container">
     <div class="card">
       <h1>الحد الأدنى ومقاعد متبقية لكل تخصص</h1>
-      <p class="lead">تعرض هذه الصفحة الحد الأدنى الفعلي (عندما تكتمل المقاعد) وعدد المقاعد المتبقية لكل تخصص ونوع (عام، موازي، الصحة). يتم التحديث تلقائياً عند نشر النتائج أو تعديل المقاعد.</p>
+      <p class="lead">تعرض الصفحة الحد الأدنى الفعلي (عندما تكتمل المقاعد) وعدد المقاعد المتبقية لكل تخصص ونوع (عام، موازي، الصحة). التحديث تلقائي عند نشر النتائج أو تعديل المقاعد.</p>
 
       <div class="controls">
         <button id="refreshBtn" class="ghost">تحديث الآن</button>
@@ -93,7 +92,7 @@
 
     <div class="card">
       <h1>ملاحظات للمستخدمين</h1>
-      <p class="lead">القيم المعروضة تحت "الحد الأدنى" هي أدنى معدل تم قبوله فعلياً فقط بعد امتلاء المقاعد لذلك تعتبر نهائية. أما "مقاعد متبقية" فتُظهر عدد المقاعد المتبقية حتى تكتمل عملية القبول.</p>
+      <p class="lead">القيم المعروضة تحت "الحد الأدنى" هي أدنى معدل تم قبوله فعلياً فقط بعد امتلاء المقاعد. "مقاعد متبقية" تُظهر عدد المقاعد المتبقية حتى تكتمل عملية القبول.</p>
     </div>
   </div>
 
@@ -115,6 +114,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app, firebaseConfig.databaseURL);
 
+    // ترتيب التخصصات كما في النظام
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -123,7 +123,6 @@
       "جراحة الأطفال","الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
       "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
     ];
-    const types = ["عام","موازي","الصحة"]; // تم تغيير اسم الوزارة إلى "الصحة"
 
     const tbody = document.getElementById('minScoresTbody');
     const lastUpdatedEl = document.getElementById('lastUpdated');
@@ -136,11 +135,30 @@
       return String(v);
     }
 
+    // قراءة قيمة المقاعد من صف المقاعد مع دعم مفاتيح 'وزارة' أو 'الصحة'
+    function getSeatCountForType(seatRow, displayType){
+      // displayType: 'عام' | 'موازي' | 'الصحة'
+      if (!seatRow) return 0;
+      if (displayType === 'الصحة') {
+        // قد تكون المخزنة تحت 'وزارة' أو 'الصحة'
+        return Number(seatRow['وزارة'] ?? seatRow['الصحة'] ?? 0);
+      }
+      return Number(seatRow[displayType] ?? 0);
+    }
+
+    // normalize assignedType from results (قد يكون 'وزارة' أو 'الصحة')
+    function normalizeAssignedType(t){
+      if (!t) return t;
+      if (t === 'وزارة') return 'الصحة';
+      return t;
+    }
+
     function computeDisplay(seatsObj, acceptedObj, minScoresFromResults){
+      // acceptedObj: { id: { assigned, assignedType, score } }
       const acceptedCount = {};
       Object.values(acceptedObj || {}).forEach(a => {
         const spec = a.assigned;
-        const typ = a.assignedType === 'الصحة' ? 'الصحة' : a.assignedType; // normalize if results used "وزارة"
+        const typ = normalizeAssignedType(a.assignedType);
         if (!spec || !typ) return;
         acceptedCount[spec] = acceptedCount[spec] || { 'عام':0, 'موازي':0, 'الصحة':0 };
         acceptedCount[spec][typ] = (acceptedCount[spec][typ] || 0) + 1;
@@ -154,31 +172,35 @@
           'الصحة': { seatsTotal:0, accepted:0, left:0, min: null }
         };
         const seatRow = seatsObj && seatsObj[spec] ? seatsObj[spec] : {};
-        ['عام','موازي','وزارة'].forEach(t => {
-          const total = Number(seatRow[t] || 0);
-          const mappedType = (t === 'الصحة') ? 'الصحة' : t;
-          const acc = (acceptedCount[spec] && acceptedCount[spec][mappedType]) ? acceptedCount[spec][mappedType] : 0;
+        ['عام','موازي','الصحة'].forEach(displayType => {
+          const total = getSeatCountForType(seatRow, displayType);
+          const acc = (acceptedCount[spec] && acceptedCount[spec][displayType]) ? acceptedCount[spec][displayType] : 0;
           let left = total - acc;
           if (left < 0) left = 0;
-          table[spec][mappedType].seatsTotal = total;
-          table[spec][mappedType].accepted = acc;
-          table[spec][mappedType].left = left;
+          table[spec][displayType].seatsTotal = total;
+          table[spec][displayType].accepted = acc;
+          table[spec][displayType].left = left;
+
+          // إذا امتلأت المقاعد (left === 0) نحاول الحصول على الحد الأدنى من minScoresFromResults
           if (left === 0) {
-            const ms = (minScoresFromResults && (minScoresFromResults[spec] || minScoresFromResults[spec]) ) ? (minScoresFromResults[spec] && (minScoresFromResults[spec][t] !== undefined ? minScoresFromResults[spec][t] : (minScoresFromResults[spec][mappedType] !== undefined ? minScoresFromResults[spec][mappedType] : null))) : null;
-            // try both keys 'وزارة' and 'الصحة'
-            const msAlt = (minScoresFromResults && minScoresFromResults[spec]) ? (minScoresFromResults[spec]['الصحة'] ?? minScoresFromResults[spec]['الصحة'] ?? null) : null;
-            table[spec][mappedType].min = ms !== null ? ms : msAlt;
+            let ms = null;
+            if (minScoresFromResults && minScoresFromResults[spec]) {
+              // minScoresFromResults قد تستخدم مفاتيح 'وزارة' أو 'الصحة'
+              ms = minScoresFromResults[spec][displayType] ?? minScoresFromResults[spec][displayType === 'الصحة' ? 'وزارة' : displayType] ?? null;
+            }
+            table[spec][displayType].min = ms !== undefined ? ms : null;
           } else {
-            table[spec][mappedType].min = null;
+            table[spec][displayType].min = null;
           }
         });
       });
 
+      // إذا لم تتوفر minScoresFromResults، نحسب الحد الأدنى من acceptedObj (فقط للأقسام المكتملة)
       if (!minScoresFromResults) {
         const mins = {};
         Object.values(acceptedObj || {}).forEach(a => {
           const spec = a.assigned;
-          const typ = a.assignedType === 'الصحة' ? 'الصحة' : a.assignedType;
+          const typ = normalizeAssignedType(a.assignedType);
           const score = Number(a.score);
           if (!spec || !typ || isNaN(score)) return;
           mins[spec] = mins[spec] || { 'عام': null, 'موازي': null, 'الصحة': null };
