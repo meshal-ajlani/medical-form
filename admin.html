@@ -224,7 +224,6 @@ button:hover {
 
 </div>
 </div>
-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -358,108 +357,6 @@ function deleteResults() {
     alert("تم حذف النتائج");
 }
 
-/* حساب الحد الأدنى */
-async function calculateMinScores(results) {
-    const minScores = {};
-
-    specialties.forEach(spec => {
-        minScores[spec] = { عام: "—", موازي: "—", صحة: "—" };
-    });
-
-    Object.values(results).forEach(r => {
-        if (!r.accepted) return;
-
-        const spec = r.specialty;
-        const type = r.type;
-        const score = Number(r.score);
-
-        let key = "";
-        if (type === "دراسات عام") key = "عام";
-        if (type === "دراسات موازي") key = "موازي";
-        if (type === "وزارة الصحة") key = "صحة";
-
-        if (minScores[spec][key] === "—" || score < minScores[spec][key]) {
-            minScores[spec][key] = score;
-        }
-    });
-
-    await db.ref("min_scores").set(minScores);
-}
-
-/* تنفيذ القبول */
-async function runAcceptance() {
-
-    const seatsSnap = await db.ref("seats").once("value");
-    const seatsOriginal = seatsSnap.val() || {};
-
-    const seats = JSON.parse(JSON.stringify(seatsOriginal));
-
-    const studentsSnap = await db.ref("students").once("value");
-    const students = [];
-
-    studentsSnap.forEach(s => students.push(s.val()));
-
-    // 🔥 ترتيب الطلاب حسب المعدل
-    students.sort((a,b) => Number(b.score) - Number(a.score));
-
-    const results = {};
-
-    students.forEach(st => {
-        let accepted = false;
-
-        for (let i = 1; i <= 10; i++) {
-
-            if (!st.choices || !st.choices[i]) continue;
-
-            const spec = st.choices[i].specialty;
-            const type = st.choices[i].type;
-
-            if (!spec || !type) continue;
-
-            let seatKey = "";
-            if (type === "دراسات عام") seatKey = "عام";
-            if (type === "دراسات موازي") seatKey = "موازي";
-            if (type === "وزارة الصحة") seatKey = "صحة";
-
-            if (seats[spec][seatKey] > 0) {
-
-                seats[spec][seatKey]--;
-
-                results[st.exam] = {
-                    accepted: true,
-                    specialty: spec,
-                    type: type,
-                    choiceNumber: i,
-                    score: Number(st.score),
-                    name: st.name,
-                    exam: st.exam
-                };
-
-                accepted = true;
-                break;
-            }
-        }
-
-        if (!accepted) {
-            results[st.exam] = {
-                accepted: false,
-                score: Number(st.score),
-                name: st.name,
-                exam: st.exam
-            };
-        }
-    });
-
-    await db.ref("results").set(results);
-    await db.ref("seats_used").set(seats);
-
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    await calculateMinScores(results);
-
-    alert("تم تحديث النتائج بنجاح");
-}
-
 /* عرض المقبولين */
 function loadAccepted() {
     db.ref("results").on("value", snap => {
@@ -547,6 +444,113 @@ function loadMinScores() {
             table.appendChild(row);
         });
     });
+}
+/* حساب الحد الأدنى */
+async function calculateMinScores(results) {
+    const minScores = {};
+
+    specialties.forEach(spec => {
+        minScores[spec] = { عام: "—", موازي: "—", صحة: "—" };
+    });
+
+    Object.values(results).forEach(r => {
+        if (!r.accepted) return;
+
+        const spec = r.specialty;
+        const type = r.type;
+        const score = Number(r.score);
+
+        let key = "";
+        if (type.includes("عام")) key = "عام";
+        if (type.includes("موازي")) key = "موازي";
+        if (type.includes("صحة")) key = "صحة";
+
+        if (minScores[spec][key] === "—" || score < minScores[spec][key]) {
+            minScores[spec][key] = score;
+        }
+    });
+
+    await db.ref("min_scores").set(minScores);
+}
+
+/* تنفيذ القبول */
+async function runAcceptance() {
+
+    const seatsSnap = await db.ref("seats").once("value");
+    const seatsOriginal = seatsSnap.val() || {};
+
+    const seats = JSON.parse(JSON.stringify(seatsOriginal));
+
+    const studentsSnap = await db.ref("students").once("value");
+    const students = [];
+
+    studentsSnap.forEach(s => students.push(s.val()));
+
+    // 🔥 ترتيب الطلاب حسب المعدل
+    students.sort((a,b) => Number(b.score) - Number(a.score));
+
+    const results = {};
+
+    students.forEach(st => {
+        let accepted = false;
+
+        for (let i = 1; i <= 10; i++) {
+
+            if (!st.choices || !st.choices[i]) continue;
+
+            const spec = st.choices[i].specialty;
+            const type = st.choices[i].type;
+
+            if (!spec || !type) continue;
+
+            // 🔥 تحديد نوع المقعد بشكل مرن
+            let seatKey = "";
+            if (type.includes("عام")) seatKey = "عام";
+            if (type.includes("موازي")) seatKey = "موازي";
+            if (type.includes("صحة")) seatKey = "صحة";
+
+            // 🔥 حماية من undefined
+            if (!seats[spec]) continue;
+            if (seats[spec][seatKey] === undefined) continue;
+
+            // 🔥 إذا في مقعد متاح
+            if (Number(seats[spec][seatKey]) > 0) {
+
+                seats[spec][seatKey]--;
+
+                results[st.exam] = {
+                    accepted: true,
+                    specialty: spec,
+                    type: type,
+                    choiceNumber: i,
+                    score: Number(st.score),
+                    name: st.name,
+                    exam: st.exam
+                };
+
+                accepted = true;
+                break; // 🔥 يمنع أخذ مقعد من الرغبات التالية
+            }
+        }
+
+        if (!accepted) {
+            results[st.exam] = {
+                accepted: false,
+                score: Number(st.score),
+                name: st.name,
+                exam: st.exam
+            };
+        }
+    });
+
+    await db.ref("results").set(results);
+    await db.ref("seats_used").set(seats);
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    await calculateMinScores(results);
+
+    alert("تم تحديث النتائج بنجاح");
 }
 
 /* تحميل كل شيء */
