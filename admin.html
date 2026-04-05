@@ -8,7 +8,7 @@
   <style>
     :root{--bg:#f7fbfc;--card:#fff;--accent:#0b6b8f;--danger:#d9534f;--muted:#6b7c86}
     body{font-family:'Cairo',sans-serif;background:linear-gradient(180deg,#eef8fb,#f7fbfc);margin:0;padding:20px;color:#123}
-    .wrap{max-width:1100px;margin:20px auto}
+    .wrap{max-width:1200px;margin:20px auto}
     .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06);margin-bottom:16px}
     h2{color:var(--accent);margin:0 0 10px}
     .row{display:flex;gap:12px;flex-wrap:wrap}
@@ -16,44 +16,31 @@
     button{background:var(--accent);color:#fff;border:none;cursor:pointer}
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{padding:8px;border-bottom:1px solid #eef5f7;text-align:left;font-size:14px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap}
-    .danger{background:var(--danger);color:#fff}
-    .small{font-size:13px;color:var(--muted)}
-    .flex-between{display:flex;justify-content:space-between;align-items:center}
     .list{max-height:320px;overflow:auto;border:1px solid #eef5f7;padding:8px;border-radius:8px}
-    .badge{background:#eef9fb;padding:6px 8px;border-radius:8px;color:var(--muted);font-weight:600}
+    .small{font-size:13px;color:var(--muted)}
+    .danger{background:var(--danger);color:#fff}
+    .spec-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .spec-row input{width:90px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="flex-between">
-        <h2>لوحة الإدارة</h2>
-        <div>
-          <span class="small">حالة: </span><span id="authState" class="badge">غير متصل</span>
-        </div>
-      </div>
-
+      <h2>لوحة الإدارة</h2>
+      <div class="small">سجل دخول ثم عدّل المقاعد وشغّل آلية المفاضلة.</div>
       <div style="margin-top:10px" class="row">
-        <div>
-          <label class="small">البريد الإلكتروني (أدمن)</label>
-          <input id="adminEmail" placeholder="email@example.com" />
-        </div>
-        <div>
-          <label class="small">كلمة المرور</label>
-          <input id="adminPass" type="password" placeholder="كلمة المرور" />
-        </div>
+        <div><label class="small">البريد الإلكتروني</label><input id="adminEmail" /></div>
+        <div><label class="small">كلمة المرور</label><input id="adminPass" type="password" /></div>
         <div style="align-self:end">
           <button id="loginBtn">تسجيل دخول</button>
           <button id="logoutBtn" style="display:none;background:#777">تسجيل خروج</button>
         </div>
       </div>
-      <div class="small" style="margin-top:8px">ملاحظة: لتجربة سريعة يمكنك إنشاء مستخدم أدمن في Firebase Authentication ثم إضافة الـ uid الخاص به يدوياً في المسار <code>/admins/{uid}: true</code> في Realtime Database.</div>
     </div>
 
     <div class="card">
-      <h3>تحديد عدد المقاعد لكل تخصص</h3>
-      <div class="small">اضبط عدد المقاعد ثم اضغط حفظ. التغييرات متاحة فوراً.</div>
+      <h3>المقاعد حسب التخصص والنوع</h3>
+      <div class="small">اضبط عدد المقاعد لكل تخصص ولكل نوع ثم اضغط حفظ.</div>
       <div id="seatsContainer" class="list" style="margin-top:10px"></div>
       <div style="margin-top:10px">
         <button id="saveSeatsBtn">حفظ المقاعد</button>
@@ -63,8 +50,13 @@
     </div>
 
     <div class="card">
+      <h3>الحد الأدنى للمعدل لكل تخصص ونوع (يتحدّث تلقائياً)</h3>
+      <div id="minScoresTable" class="list" style="padding:12px"></div>
+    </div>
+
+    <div class="card">
       <h3>النتائج</h3>
-      <div class="row" style="gap:20px">
+      <div class="row">
         <div style="flex:1">
           <h4>المقبولون</h4>
           <div id="acceptedList" class="list"></div>
@@ -84,7 +76,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, set, get, child, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, child, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -94,12 +86,10 @@
       projectId: "PROJECT",
       appId: "APP_ID"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
 
-    // نفس قائمة التخصصات
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -108,79 +98,76 @@
       "جراحة الأطفال","الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
       "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
     ];
+    const types = ["عام","موازي","وزارة"];
 
-    // عناصر DOM
+    // DOM
     const seatsContainer = document.getElementById('seatsContainer');
     const saveSeatsBtn = document.getElementById('saveSeatsBtn');
     const runAlgoBtn = document.getElementById('runAlgoBtn');
     const acceptedList = document.getElementById('acceptedList');
     const rejectedList = document.getElementById('rejectedList');
     const studentsTable = document.getElementById('studentsTable');
+    const minScoresTable = document.getElementById('minScoresTable');
     const clearAllBtn = document.getElementById('clearAllBtn');
 
     const adminEmail = document.getElementById('adminEmail');
     const adminPass = document.getElementById('adminPass');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const authState = document.getElementById('authState');
 
-    // أنشئ حقول إدخال للمقاعد
-    specialties.forEach(s=>{
+    // أنشئ واجهة إدخال المقاعد: لكل تخصص ثلاثة حقول
+    specialties.forEach(spec=>{
       const wrapper = document.createElement('div');
-      wrapper.style.display = 'flex';
-      wrapper.style.justifyContent = 'space-between';
-      wrapper.style.alignItems = 'center';
-      wrapper.style.marginBottom = '6px';
-
-      const label = document.createElement('div');
-      label.textContent = s;
-      label.style.flex = '1';
-
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.min = '0';
-      input.value = '0';
-      input.style.width = '90px';
-      input.dataset.spec = s;
-
+      wrapper.className = 'spec-row';
+      const label = document.createElement('div'); label.textContent = spec; label.style.flex='1';
+      const inputs = document.createElement('div'); inputs.style.display='flex'; inputs.style.gap='8px';
+      types.forEach(t=>{
+        const inp = document.createElement('input');
+        inp.type='number'; inp.min='0'; inp.value='0';
+        inp.dataset.spec = spec; inp.dataset.type = t;
+        inp.title = t;
+        inputs.appendChild(inp);
+      });
       wrapper.appendChild(label);
-      wrapper.appendChild(input);
+      wrapper.appendChild(inputs);
       seatsContainer.appendChild(wrapper);
     });
 
-    // تحميل المقاعد من DB
+    // تحميل المقاعد من DB وعرضها
     const seatsRef = ref(db, 'seats');
-    onValue(seatsRef, (snap)=>{
+    onValue(seatsRef, snap=>{
       const data = snap.val() || {};
       document.querySelectorAll('[data-spec]').forEach(inp=>{
-        inp.value = data[inp.dataset.spec] ?? 0;
+        const s = inp.dataset.spec;
+        const t = inp.dataset.type;
+        inp.value = (data[s] && data[s][t]) ? data[s][t] : 0;
       });
     });
 
     saveSeatsBtn.addEventListener('click', async ()=>{
-      // تحقق صلاحية الأدمن محلياً: نتحقق من وجود uid في /admins
       const user = auth.currentUser;
-      if (!user){
-        alert('يجب تسجيل الدخول كأدمن لحفظ المقاعد.');
-        return;
-      }
+      if (!user){ alert('سجل دخول كأدمن لحفظ المقاعد.'); return; }
       const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
-      if (!adminSnap.exists()){
-        alert('ليس لديك صلاحية أدمن.');
-        return;
-      }
+      if (!adminSnap.exists()){ alert('ليس لديك صلاحية أدمن.'); return; }
 
       const updates = {};
       document.querySelectorAll('[data-spec]').forEach(inp=>{
-        updates[inp.dataset.spec] = Number(inp.value) || 0;
+        const s = inp.dataset.spec; const t = inp.dataset.type;
+        updates[`${s}/${t}`] = Number(inp.value) || 0;
       });
-      await set(seatsRef, updates);
+      // نعيد بناء كائن المقاعد
+      const seatsObj = {};
+      specialties.forEach(s=>{
+        seatsObj[s] = {};
+        types.forEach(t=> seatsObj[s][t] = Number(document.querySelector(`[data-spec="${s}"][data-type="${t}"]`).value) || 0);
+      });
+      await set(seatsRef, seatsObj);
       alert('تم حفظ المقاعد.');
     });
 
-    // تحميل الطلاب وعرضهم
+    // تحميل وعرض الطلاب
     const studentsRef = ref(db, 'students');
-    onValue(studentsRef, (snap)=>{
+    onValue(studentsRef, snap=>{
       const data = snap.val() || {};
       renderStudentsTable(data);
     });
@@ -188,21 +175,17 @@
     function renderStudentsTable(data){
       const rows = Object.entries(data).map(([key, s])=>{
         return `<tr>
-          <td>${s.name}</td>
-          <td>${s.examNo}</td>
-          <td>${s.score}</td>
-          <td>${s.type}</td>
+          <td>${s.name}</td><td>${s.examNo}</td><td>${s.score}</td><td>${s.type}</td>
           <td>${(s.prefs||[]).join(' | ')}</td>
           <td><button data-id="${key}" class="delBtn">حذف</button></td>
         </tr>`;
       }).join('');
       studentsTable.innerHTML = `<table><thead><tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>النوع</th><th>الرغبات</th><th>إجراء</th></tr></thead><tbody>${rows}</tbody></table>`;
-      // أضف مستمعي حذف
       document.querySelectorAll('.delBtn').forEach(b=>{
         b.addEventListener('click', async (e)=>{
           const id = e.target.dataset.id;
           if (!confirm('حذف هذا الطالب؟')) return;
-          await remove(child(ref(db), `students/${id}`));
+          await remove(ref(db, `students/${id}`));
         });
       });
     }
@@ -210,139 +193,138 @@
     // حذف جميع الطلاب
     clearAllBtn.addEventListener('click', async ()=>{
       const user = auth.currentUser;
-      if (!user){
-        alert('يجب تسجيل الدخول كأدمن لحذف الطلاب.');
-        return;
-      }
+      if (!user){ alert('سجل دخول كأدمن.'); return; }
       const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
-      if (!adminSnap.exists()){
-        alert('ليس لديك صلاحية أدمن.');
-        return;
-      }
-      if (!confirm('هل تريد حذف جميع سجلات الطلاب؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+      if (!adminSnap.exists()){ alert('ليس لديك صلاحية أدمن.'); return; }
+      if (!confirm('هل تريد حذف جميع سجلات الطلاب؟')) return;
       await remove(ref(db, 'students'));
-      // مسح نتائج سابقة
       await remove(ref(db, 'results'));
-      alert('تم حذف جميع الطلاب.');
+      alert('تم الحذف.');
     });
 
-    // تشغيل آلية المفاضلة
+    // تشغيل آلية المفاضلة (مفصّلة حسب النوع)
     runAlgoBtn.addEventListener('click', async ()=>{
       const user = auth.currentUser;
-      if (!user){
-        alert('يجب تسجيل الدخول كأدمن لتشغيل الآلية.');
-        return;
-      }
+      if (!user){ alert('سجل دخول كأدمن.'); return; }
       const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
-      if (!adminSnap.exists()){
-        alert('ليس لديك صلاحية أدمن.');
-        return;
-      }
+      if (!adminSnap.exists()){ alert('ليس لديك صلاحية أدمن.'); return; }
 
-      // جلب المقاعد والطلاب
       const seatsSnap = await get(seatsRef);
       const seats = seatsSnap.val() || {};
       const studentsSnap = await get(studentsRef);
       const studentsObj = studentsSnap.val() || {};
 
       // تحويل الطلاب إلى مصفوفة وترتيب تنازلي حسب المعدل
-      const students = Object.entries(studentsObj).map(([id, s])=>{
-        return { id, ...s };
-      }).sort((a,b)=> b.score - a.score);
+      const students = Object.entries(studentsObj).map(([id, s])=> ({ id, ...s }))
+        .sort((a,b)=> b.score - a.score);
 
       // نسخة من المقاعد قابلة للتعديل
       const seatsLeft = {};
-      specialties.forEach(s=> seatsLeft[s] = Number(seats[s] || 0));
+      specialties.forEach(s=>{
+        seatsLeft[s] = {};
+        types.forEach(t=> seatsLeft[s][t] = Number((seats[s] && seats[s][t]) ? seats[s][t] : 0));
+      });
 
-      const accepted = [];
-      const rejected = [];
+      const accepted = {};
+      const rejected = {};
 
-      // آلية القبول: لكل طالب حسب ترتيبه، جرب رغباته من الأولى للعاشرة
-      for (const stu of students){
-        let assigned = null;
-        for (const pref of (stu.prefs || [])){
-          if (!pref) continue;
-          if ((seatsLeft[pref] || 0) > 0){
-            seatsLeft[pref] -= 1;
-            assigned = pref;
-            break;
+      // لكل نوع نعالج الطلاب الذين اختاروا ذلك النوع فقط
+      for (const t of types){
+        // فلتر الطلاب من نفس النوع
+        const pool = students.filter(st => st.type === t);
+        for (const stu of pool){
+          let assigned = null;
+          for (const pref of (stu.prefs || [])){
+            if (!pref) continue;
+            if ((seatsLeft[pref] && seatsLeft[pref][t] > 0)){
+              seatsLeft[pref][t] -= 1;
+              assigned = pref;
+              break;
+            }
           }
-        }
-        if (assigned){
-          accepted.push({...stu, assigned});
-        } else {
-          rejected.push(stu);
+          if (assigned){
+            accepted[stu.id] = { ...stu, assigned, type: t };
+          } else {
+            rejected[stu.id] = { ...stu };
+          }
         }
       }
 
-      // خزّن النتائج في DB تحت /results
+      // حساب الحد الأدنى للمعدل لكل تخصص ولكل نوع
+      const minScores = {};
+      specialties.forEach(s=>{
+        minScores[s] = {};
+        types.forEach(t=>{
+          // اجمع المقبولين في هذا التخصص والنوع
+          const arr = Object.values(accepted).filter(a => a.assigned === s && a.type === t);
+          if (arr.length === 0) minScores[s][t] = null;
+          else {
+            // الحد الأدنى = أقل معدل بين المقبولين في هذا التخصص/نوع
+            const min = Math.min(...arr.map(x => Number(x.score)));
+            minScores[s][t] = min;
+          }
+        });
+      });
+
+      // حفظ النتائج
       const resultsRef = ref(db, 'results');
       const payload = {
         generatedAt: Date.now(),
         seatsLeft,
-        accepted: accepted.reduce((acc, s)=>{ acc[s.id] = s; return acc; }, {}),
-        rejected: rejected.reduce((acc, s)=>{ acc[s.id] = s; return acc; }, {})
+        accepted,
+        rejected,
+        minScores
       };
       await set(resultsRef, payload);
-
-      // عرض النتائج في الواجهة
-      renderResults(payload);
-      alert('انتهت عملية المفاضلة. النتائج محفوظة في /results');
+      alert('انتهت عملية المفاضلة. النتائج محفوظة.');
     });
 
-    // عرض النتائج إن وجدت
+    // عرض النتائج وتحديث جدول الحد الأدنى تلقائياً
     const resultsRef = ref(db, 'results');
-    onValue(resultsRef, (snap)=>{
+    onValue(resultsRef, snap=>{
       const data = snap.val();
-      if (data) renderResults(data);
-    });
-
-    function renderResults(data){
-      acceptedList.innerHTML = '';
-      rejectedList.innerHTML = '';
+      if (!data){ acceptedList.innerHTML = '<div class="small">لا نتائج</div>'; rejectedList.innerHTML = '<div class="small">لا نتائج</div>'; minScoresTable.innerHTML = '<div class="small">لا نتائج</div>'; return; }
+      // عرض المقبولين والمرفوضين
       const acc = Object.values(data.accepted || {});
       const rej = Object.values(data.rejected || {});
-      if (acc.length===0) acceptedList.innerHTML = '<div class="small">لا يوجد مقبولون بعد</div>';
-      else acceptedList.innerHTML = acc.map(a=>`<div><strong>${a.name}</strong> — ${a.score} — مقبول في: ${a.assigned}</div>`).join('');
-      if (rej.length===0) rejectedList.innerHTML = '<div class="small">لا يوجد مرفوضون</div>';
-      else rejectedList.innerHTML = rej.map(r=>`<div>${r.name} — ${r.score}</div>`).join('');
-    }
+      acceptedList.innerHTML = acc.length ? acc.map(a=>`<div><strong>${a.name}</strong> — ${a.score} — ${a.assigned} (${a.type})</div>`).join('') : '<div class="small">لا يوجد مقبولون</div>';
+      rejectedList.innerHTML = rej.length ? rej.map(r=>`<div>${r.name} — ${r.score} — ${r.type}</div>`).join('') : '<div class="small">لا يوجد مرفوضون</div>';
+
+      // جدول الحد الأدنى
+      const minScores = data.minScores || {};
+      let html = '<table><thead><tr><th>التخصص</th>';
+      types.forEach(t=> html += `<th>${t}</th>`);
+      html += '</tr></thead><tbody>';
+      specialties.forEach(s=>{
+        html += `<tr><td>${s}</td>`;
+        types.forEach(t=>{
+          const v = (minScores[s] && minScores[s][t] !== undefined) ? minScores[s][t] : null;
+          html += `<td>${v === null ? '-' : v}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      minScoresTable.innerHTML = html;
+    });
 
     // تسجيل دخول/خروج (Firebase Auth)
     loginBtn.addEventListener('click', async ()=>{
-      const email = adminEmail.value.trim();
-      const pass = adminPass.value;
-      if (!email || !pass) { alert('أدخل البريد وكلمة المرور'); return; }
-      try{
-        await signInWithEmailAndPassword(auth, email, pass);
-      }catch(err){
-        alert('فشل تسجيل الدخول: ' + err.message);
-      }
+      const email = adminEmail.value.trim(); const pass = adminPass.value;
+      if (!email || !pass){ alert('أدخل البريد وكلمة المرور'); return; }
+      try{ await signInWithEmailAndPassword(auth, email, pass); } catch(err){ alert('فشل تسجيل الدخول: ' + err.message); }
     });
-    logoutBtn.addEventListener('click', async ()=> {
-      await signOut(auth);
-    });
+    logoutBtn.addEventListener('click', async ()=> { await signOut(auth); });
 
     onAuthStateChanged(auth, async (user)=>{
       if (user){
-        authState.textContent = 'متصل';
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'inline-block';
+        loginBtn.style.display = 'none'; logoutBtn.style.display = 'inline-block';
         // تحقق من وجود uid في /admins
         const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
-        if (!adminSnap.exists()){
-          authState.textContent = 'متصل (ليس أدمن)';
-          alert('تم تسجيل الدخول لكن هذا المستخدم ليس في قائمة الأدمن. أضف uid في /admins ليحصل على صلاحيات.');
-        } else {
-          authState.textContent = 'متصل (أدمن)';
-        }
+        if (!adminSnap.exists()){ alert('المستخدم ليس في قائمة الأدمن. أضف uid في /admins ليحصل على صلاحيات.'); }
       } else {
-        authState.textContent = 'غير متصل';
-        loginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
+        loginBtn.style.display = 'inline-block'; logoutBtn.style.display = 'none';
       }
     });
-
   </script>
 </body>
 </html>
