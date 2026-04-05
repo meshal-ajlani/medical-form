@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Form</title>
+</head>
+
+<body>
+
+    <h2>تجربة إرسال البيانات إلى Firebase</h2>
+
+    <input id="name" placeholder="الاسم">
+    <br><br>
+
+    <input id="exam" placeholder="الرقم الامتحاني">
+    <br><br>
+
+    <input id="score" placeholder="المعدل">
+    <br><br>
+
+    <button onclick="submitForm()">إرسال</button>
+
+    <script>
+        function submitForm() {
+            const name = document.getElementById("name").value;
+            const exam = document.getElementById("exam").value;
+            const score = document.getElementById("score").value;
+
+            db.ref("students/" + exam).set({
+                name: name,
+                exam: exam,
+                score: score
+            }).then(() => {
+                alert("تم الإرسال بنجاح");
+            });
+        }
+    </script>
+
+    <!-- Firebase App -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+    <!-- Firebase Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyA9PmgtkNuY25DEy6_G30tryB-d4s3l_2g",
+        authDomain: "medical-form-80f5a.firebaseapp.com",
+        databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app/",
+        projectId: "medical-form-80f5a",
+        storageBucket: "medical-form-80f5a.firebasestorage.app",
+        messagingSenderId: "662141312032",
+        appId: "1:662141312032:web:14b50dd58662927952b045",
+        measurementId: "G-1GHFZF8QRS"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+
+      const db = firebase.database();
+    </script>
+
+</body>
+</html>
