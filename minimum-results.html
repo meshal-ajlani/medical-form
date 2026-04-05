@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>الحد الأدنى ومقاعد متبقية - مفاضلة الطب</title>
+  <title>الحد الأدنى ومقاعد متبقية لكل تخصص</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
 
@@ -11,13 +11,21 @@
     :root{
       --bg:#f6fbfd; --card:#fff; --accent:#0b6b8f; --muted:#6b7c86;
       --col-a:#e8f7f9; --col-b:#fff7e6; --col-c:#f7eefc;
+      --sep:#d7e0e4; /* لون الفاصل المتوسط */
       --radius:12px; --shadow:0 10px 30px rgba(10,30,40,0.06);
     }
+
     html,body{height:100%}
     body{
-      margin:0;font-family:'Almarai',system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#eef9fb,#f6fbfd);color:#123;padding:20px;
-      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+      margin:0;
+      font-family:'Almarai',system-ui,Segoe UI,Roboto,Arial;
+      background:linear-gradient(180deg,#eef9fb,#f6fbfd);
+      color:#123;
+      padding:20px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
+
     .container{max-width:1200px;margin:18px auto;display:grid;gap:16px}
     .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid rgba(10,30,40,0.03)}
     h1{margin:0 0 6px;color:var(--accent);font-size:20px}
@@ -26,27 +34,23 @@
     button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
     button.ghost{background:#fff;border:1px solid #e6f3f6;color:var(--accent)}
     .badge{background:#eef9fb;padding:6px 10px;border-radius:10px;color:var(--muted);font-weight:600}
-    .table-wrap{overflow:auto;border-radius:10px;border:1px solid #eef5f7;margin-top:12px}
-    table{width:100%;border-collapse:collapse}
-    thead th{position:sticky;top:0;background:#fff;padding:12px 10px;text-align:left;border-bottom:2px solid #eef5f7;font-weight:700}
+    .table-wrap{overflow:auto;border-radius:10px;border:1px solid #eef5f7;margin-top:12px;background:#fff}
+    table{width:100%;border-collapse:collapse;direction:rtl}
+    thead th{position:sticky;top:0;background:#fff;padding:12px 10px;text-align:right;border-bottom:2px solid var(--sep);font-weight:700}
     thead th.type-a{background:var(--col-a)}
     thead th.type-b{background:var(--col-b)}
     thead th.type-c{background:var(--col-c)}
-    tbody td{padding:10px;border-bottom:1px solid #f1f6f8;font-size:15px;vertical-align:middle}
+    tbody td{padding:10px;border-bottom:2px solid var(--sep);font-size:15px;text-align:right;vertical-align:middle}
+    /* فاصل عمودي متوسط بين الأعمدة (بعد كل عمود) */
+    thead th + th, tbody td + td { border-right: 2px solid var(--sep); }
+    /* تمييز الصف عند المرور */
     tbody tr:hover{background:rgba(11,107,143,0.03)}
-    .spec{font-weight:600}
+    .spec{font-weight:700}
     .muted{color:var(--muted)}
     .empty{padding:18px;text-align:center;color:var(--muted)}
-    .updated{font-size:13px;color:var(--muted);margin-left:8px}
     .small-note{font-size:13px;color:var(--muted);margin-top:8px}
-    .ok{color:#155724;background:#d4edda;padding:6px 8px;border-radius:8px;display:inline-block}
-    .warn{color:#856404;background:#fff3cd;padding:6px 8px;border-radius:8px;display:inline-block}
     @media (max-width:980px){
-      .table-wrap{font-size:14px}
-      thead th, tbody td{padding:8px}
-    }
-    @media (max-width:720px){
-      .responsive-hide{display:none}
+      thead th, tbody td{padding:8px;font-size:14px}
     }
   </style>
 </head>
@@ -54,7 +58,7 @@
   <div class="container">
     <div class="card">
       <h1>الحد الأدنى ومقاعد متبقية لكل تخصص</h1>
-      <p class="lead">تعرض هذه الصفحة الحد الأدنى الفعلي (عندما تكتمل المقاعد) وعدد المقاعد المتبقية لكل تخصص ونوع (عام، موازي، وزارة). يتم التحديث تلقائياً عند نشر النتائج أو تعديل المقاعد.</p>
+      <p class="lead">تعرض هذه الصفحة الحد الأدنى الفعلي (عندما تكتمل المقاعد) وعدد المقاعد المتبقية لكل تخصص ونوع (عام، موازي، الصحة). يتم التحديث تلقائياً عند نشر النتائج أو تعديل المقاعد.</p>
 
       <div class="controls">
         <button id="refreshBtn" class="ghost">تحديث الآن</button>
@@ -62,7 +66,7 @@
         <div id="lastUpdated" class="badge">آخر تحديث: -</div>
       </div>
 
-      <div class="small-note">ملاحظة: **الحد الأدنى يظهر فقط بعد امتلاء المقاعد** لذلك إن كانت الخانة فارغة أو "-" فهذا يعني أن المقاعد لم تكتمل بعد.</div>
+      <div class="small-note">ملاحظة: يظهر "الحد الأدنى" فقط بعد امتلاء المقاعد (عندما يصبح عدد المقاعد المتبقية صفر). إذا كانت القيمة "-" فهذا يعني أن المقاعد لم تكتمل بعد.</div>
 
       <div class="table-wrap" id="tableWrap" aria-live="polite">
         <table id="minScoresTable" role="table" aria-label="الحد الأدنى والمقاعد المتبقية">
@@ -70,14 +74,14 @@
             <tr>
               <th style="min-width:220px">التخصص</th>
 
-              <th class="type-a">مقاعد متبقية<br><small class="muted responsive-hide">عام</small></th>
-              <th class="type-a">الحد الأدنى<br><small class="muted responsive-hide">عام</small></th>
+              <th class="type-a">مقاعد متبقية<br><small class="muted">عام</small></th>
+              <th class="type-a">الحد الأدنى<br><small class="muted">عام</small></th>
 
-              <th class="type-b">مقاعد متبقية<br><small class="muted responsive-hide">موازي</small></th>
-              <th class="type-b">الحد الأدنى<br><small class="muted responsive-hide">موازي</small></th>
+              <th class="type-b">مقاعد متبقية<br><small class="muted">موازي</small></th>
+              <th class="type-b">الحد الأدنى<br><small class="muted">موازي</small></th>
 
-              <th class="type-c">مقاعد متبقية<br><small class="muted responsive-hide">وزارة</small></th>
-              <th class="type-c">الحد الأدنى<br><small class="muted responsive-hide">وزارة</small></th>
+              <th class="type-c">مقاعد متبقية<br><small class="muted">الصحة</small></th>
+              <th class="type-c">الحد الأدنى<br><small class="muted">الصحة</small></th>
             </tr>
           </thead>
           <tbody id="minScoresTbody">
@@ -97,7 +101,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // ======= إعدادات Firebase (تأكد أنها تطابق مشروعك) =======
     const firebaseConfig = {
       apiKey: "AIzaSyBKjw37YQewKBNh_Zl9Mnh1gvy37HZiNF0",
       authDomain: "medical-form2025.firebaseapp.com",
@@ -108,12 +111,10 @@
       appId: "1:1088878162837:web:d3eea8339ec78cf420fc9c",
       measurementId: "G-QP6PXM5E8P"
     };
-    // =======================================
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app, firebaseConfig.databaseURL);
 
-    // ترتيب التخصصات كما في النظام
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -122,78 +123,70 @@
       "جراحة الأطفال","الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
       "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
     ];
-    const types = ["عام","موازي","وزارة"];
+    const types = ["عام","موازي","الصحة"]; // تم تغيير اسم الوزارة إلى "الصحة"
 
     const tbody = document.getElementById('minScoresTbody');
     const lastUpdatedEl = document.getElementById('lastUpdated');
     const refreshBtn = document.getElementById('refreshBtn');
     const printBtn = document.getElementById('printBtn');
 
-    // مساعدة لعرض القيم
     function displayValue(v){
       if (v === null || v === undefined) return '-';
       if (v === '') return '-';
       return String(v);
     }
 
-    // دالة لحساب مقاعد متبقية وحساب الحد الأدنى الظاهر فقط عند الامتلاء
     function computeDisplay(seatsObj, acceptedObj, minScoresFromResults){
-      // seatsObj: { spec: { عام: n, موازي: m, وزارة: k }, ... }
-      // acceptedObj: { id: { assigned: spec, assignedType: type, score }, ... }
-      // minScoresFromResults: optional object from results.minScores
-
-      // حساب عدد المقبولين لكل تخصص ونوع
       const acceptedCount = {};
       Object.values(acceptedObj || {}).forEach(a => {
         const spec = a.assigned;
-        const typ = a.assignedType;
+        const typ = a.assignedType === 'وزارة' ? 'الصحة' : a.assignedType; // normalize if results used "وزارة"
         if (!spec || !typ) return;
-        acceptedCount[spec] = acceptedCount[spec] || { 'عام':0, 'موازي':0, 'وزارة':0 };
+        acceptedCount[spec] = acceptedCount[spec] || { 'عام':0, 'موازي':0, 'الصحة':0 };
         acceptedCount[spec][typ] = (acceptedCount[spec][typ] || 0) + 1;
       });
 
-      // بناء جدول عرض
       const table = {};
       specialties.forEach(spec => {
-        table[spec] = { 'عام': { seatsTotal:0, accepted:0, left:0, min: null },
-                        'موازي': { seatsTotal:0, accepted:0, left:0, min: null },
-                        'وزارة': { seatsTotal:0, accepted:0, left:0, min: null } };
+        table[spec] = {
+          'عام': { seatsTotal:0, accepted:0, left:0, min: null },
+          'موازي': { seatsTotal:0, accepted:0, left:0, min: null },
+          'الصحة': { seatsTotal:0, accepted:0, left:0, min: null }
+        };
         const seatRow = seatsObj && seatsObj[spec] ? seatsObj[spec] : {};
-        types.forEach(t => {
+        ['عام','موازي','وزارة'].forEach(t => {
           const total = Number(seatRow[t] || 0);
-          const acc = (acceptedCount[spec] && acceptedCount[spec][t]) ? acceptedCount[spec][t] : 0;
+          const mappedType = (t === 'وزارة') ? 'الصحة' : t;
+          const acc = (acceptedCount[spec] && acceptedCount[spec][mappedType]) ? acceptedCount[spec][mappedType] : 0;
           let left = total - acc;
           if (left < 0) left = 0;
-          table[spec][t].seatsTotal = total;
-          table[spec][t].accepted = acc;
-          table[spec][t].left = left;
-          // إذا امتلأت المقاعد (left === 0) نعرض الحد الأدنى من النتائج إن وُجد
+          table[spec][mappedType].seatsTotal = total;
+          table[spec][mappedType].accepted = acc;
+          table[spec][mappedType].left = left;
           if (left === 0) {
-            // أفضل مصدر: minScoresFromResults إذا موجود، وإلا نححسبه من acceptedObj
-            const ms = (minScoresFromResults && minScoresFromResults[spec] && minScoresFromResults[spec][t] !== undefined) ? minScoresFromResults[spec][t] : null;
-            table[spec][t].min = ms !== null ? ms : null;
+            const ms = (minScoresFromResults && (minScoresFromResults[spec] || minScoresFromResults[spec]) ) ? (minScoresFromResults[spec] && (minScoresFromResults[spec][t] !== undefined ? minScoresFromResults[spec][t] : (minScoresFromResults[spec][mappedType] !== undefined ? minScoresFromResults[spec][mappedType] : null))) : null;
+            // try both keys 'وزارة' and 'الصحة'
+            const msAlt = (minScoresFromResults && minScoresFromResults[spec]) ? (minScoresFromResults[spec]['وزارة'] ?? minScoresFromResults[spec]['الصحة'] ?? null) : null;
+            table[spec][mappedType].min = ms !== null ? ms : msAlt;
           } else {
-            table[spec][t].min = null; // لم تكتمل المقاعد بعد
+            table[spec][mappedType].min = null;
           }
         });
       });
 
-      // إذا minScoresFromResults غير موجود، نحسب من acceptedObj للأماكن المكتملة
       if (!minScoresFromResults) {
-        // حساب الحد الأدنى من acceptedObj
         const mins = {};
         Object.values(acceptedObj || {}).forEach(a => {
           const spec = a.assigned;
-          const typ = a.assignedType;
+          const typ = a.assignedType === 'وزارة' ? 'الصحة' : a.assignedType;
           const score = Number(a.score);
           if (!spec || !typ || isNaN(score)) return;
-          mins[spec] = mins[spec] || { 'عام': null, 'موازي': null, 'وزارة': null };
+          mins[spec] = mins[spec] || { 'عام': null, 'موازي': null, 'الصحة': null };
           const cur = mins[spec][typ];
           if (cur === null || score < cur) mins[spec][typ] = score;
         });
-        // ضع القيم المحسوبة فقط إذا المقاعد مكتملة
         specialties.forEach(spec => {
-          types.forEach(t => {
+          ['عام','موازي','الصحة'].forEach(t => {
             if (table[spec][t].left === 0) {
               table[spec][t].min = (mins[spec] && mins[spec][t] !== undefined) ? mins[spec][t] : table[spec][t].min;
             }
@@ -204,7 +197,6 @@
       return table;
     }
 
-    // عرض الجدول في DOM
     function renderTable(displayTable, generatedAt){
       let html = '';
       specialties.forEach(spec => {
@@ -213,8 +205,8 @@
         const aMin = row['عام'].min === null ? '-' : displayValue(row['عام'].min);
         const bLeft = displayValue(row['موازي'].left);
         const bMin = row['موازي'].min === null ? '-' : displayValue(row['موازي'].min);
-        const cLeft = displayValue(row['وزارة'].left);
-        const cMin = row['وزارة'].min === null ? '-' : displayValue(row['وزارة'].min);
+        const cLeft = displayValue(row['الصحة'].left);
+        const cMin = row['الصحة'].min === null ? '-' : displayValue(row['الصحة'].min);
 
         html += `<tr>
           <td class="spec">${escapeHtml(spec)}</td>
@@ -240,7 +232,6 @@
       }
     }
 
-    // جلب البيانات من /seats و /results (مباشر) وحساب العرض
     async function refreshOnce(){
       try {
         refreshBtn.disabled = true;
@@ -268,27 +259,16 @@
       }
     }
 
-    // استمع للتغييرات الحية على /seats و /results لتحديث العرض تلقائياً
     const seatsRef = ref(db, 'seats');
     const resultsRef = ref(db, 'results');
 
-    // عند أي تغيير في المقاعد أو النتائج نعيد الحساب
-    onValue(seatsRef, async () => {
-      await refreshOnce();
-    });
-    onValue(resultsRef, async () => {
-      await refreshOnce();
-    });
+    onValue(seatsRef, async () => { await refreshOnce(); });
+    onValue(resultsRef, async () => { await refreshOnce(); });
 
-    // زر التحديث اليدوي
     refreshBtn.addEventListener('click', refreshOnce);
-
-    // زر الطباعة
     printBtn.addEventListener('click', () => window.print());
 
-    // تحميل أولي سريع
     (async function init(){
-      // عرض صفوف فارغة للحفاظ على ترتيب سريع
       let initial = '';
       specialties.forEach(spec => {
         initial += `<tr>
@@ -302,7 +282,6 @@
       await refreshOnce();
     })();
 
-    // دالة مساعدة للهروب من XSS
     function escapeHtml(text){
       if (text === undefined || text === null) return '';
       return String(text)
