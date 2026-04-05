@@ -205,8 +205,9 @@ tr:nth-child(even) td {
 
 <script>
 
-// التخصصات
+// التخصصات (بعد إضافة الداخلية العامة + تصحيح الداخلية الرئوية)
 const specialties = [
+    "الداخلية العامة",
     "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
     "الداخلية الدموية","الداخلية الكلية","الداخلية الرئوية","الداخلية الخمجية",
     "الطب النفسي","العينية","الأذنية","الجلدية",
@@ -360,6 +361,9 @@ function updateResults() {
     fillAcceptedBySpec(accepted);
     fillFinal(accepted);
     fillRejected(rejected);
+
+    // حفظ الحد الأدنى ليستعمله results.html
+    localStorage.setItem("minScores", JSON.stringify(minScores));
 }
 
 // الحد الأدنى
