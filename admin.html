@@ -10,6 +10,47 @@ body {
     margin: 0;
     padding: 0;
 }
+
+/* شاشة تسجيل الدخول */
+#loginBox {
+    max-width: 400px;
+    margin: 120px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    text-align: center;
+}
+#loginBox input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+#loginBox button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+#loginBox button:hover {
+    background: #1d4ed8;
+}
+#errorMsg {
+    color: red;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* لوحة الإدارة */
+#adminPanel {
+    display: none;
+}
+
 .container {
     max-width: 1300px;
     margin: 30px auto;
@@ -63,6 +104,17 @@ button:hover {
 </style>
 </head>
 <body>
+
+<!-- شاشة تسجيل الدخول -->
+<div id="loginBox">
+    <h2>تسجيل الدخول للوحة الإدارة</h2>
+    <input type="password" id="adminPass" placeholder="أدخل كلمة السر">
+    <button onclick="checkPassword()">دخول</button>
+    <div id="errorMsg"></div>
+</div>
+
+<!-- لوحة الإدارة -->
+<div id="adminPanel">
 
 <div class="container">
 
@@ -150,12 +202,28 @@ button:hover {
 </div>
 
 </div>
+</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+/* كلمة السر (غير ظاهرة للمستخدم) */
+const ADMIN_PASSWORD = "Meshal2025";
+
+/* فحص كلمة السر */
+function checkPassword() {
+    const pass = document.getElementById("adminPass").value;
+
+    if (pass === ADMIN_PASSWORD) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+    } else {
+        document.getElementById("errorMsg").textContent = "كلمة السر غير صحيحة";
+    }
+}
+
 /* Firebase Config */
 const firebaseConfig = {
     apiKey: "AIzaSyA9PmgtkNuY25DEy6_G30tryB-d4s3l_2g",
