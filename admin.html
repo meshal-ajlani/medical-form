@@ -11,7 +11,7 @@ body {
     padding: 0;
 }
 .container {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 30px auto;
     background: white;
     padding: 25px;
@@ -54,7 +54,7 @@ button:hover {
     margin-bottom: 30px;
 }
 .scroll-box {
-    max-height: 400px;
+    max-height: 350px;
     overflow-y: scroll;
     border: 1px solid #ddd;
     padding: 10px;
@@ -66,57 +66,88 @@ button:hover {
 
 <div class="container">
 
-    <!-- إدارة المقاعد -->
-    <h2>إدارة المقاعد</h2>
-    <div class="section">
-        <div class="scroll-box">
-            <table id="seatsTable">
-                <tr>
-                    <th>التخصص</th>
-                    <th>مقاعد عام</th>
-                    <th>مقاعد موازي</th>
-                    <th>مقاعد وزارة الصحة</th>
-                </tr>
-            </table>
-        </div>
-        <button onclick="saveSeats()">حفظ المقاعد</button>
-    </div>
+<!-- إدارة المقاعد -->
+<h2>إدارة المقاعد</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="seatsTable">
+<tr>
+    <th>التخصص</th>
+    <th>مقاعد عام</th>
+    <th>مقاعد موازي</th>
+    <th>مقاعد وزارة الصحة</th>
+</tr>
+</table>
+</div>
+<button onclick="saveSeats()">حفظ المقاعد</button>
+</div>
 
-    <!-- الطلاب المسجلون -->
-    <h2>الطلاب المسجلون</h2>
-    <div class="section">
-        <table id="studentsTable">
-            <tr>
-                <th>الاسم</th>
-                <th>الرقم</th>
-                <th>المعدل</th>
-                <th>الرغبات</th>
-                <th>حذف</th>
-            </tr>
-        </table>
-        <button onclick="deleteAllStudents()">حذف جميع الطلاب</button>
-    </div>
+<!-- الطلاب -->
+<h2>الطلاب المسجلون</h2>
+<div class="section">
+<table id="studentsTable">
+<tr>
+    <th>الاسم</th>
+    <th>الرقم</th>
+    <th>المعدل</th>
+    <th>الرغبات</th>
+    <th>حذف</th>
+</tr>
+</table>
+<button onclick="deleteAllStudents()">حذف جميع الطلاب</button>
+</div>
 
-    <!-- النتائج -->
-    <h2>النتائج</h2>
-    <div class="section">
-        <button onclick="deleteResults()">حذف النتائج</button>
-    </div>
+<!-- المقبولين -->
+<h2>الطلاب المقبولون</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="acceptedTable">
+<tr>
+    <th>الاسم</th>
+    <th>الرقم</th>
+    <th>المعدل</th>
+    <th>التخصص المقبول</th>
+    <th>نوع المقعد</th>
+    <th>رقم الرغبة</th>
+</tr>
+</table>
+</div>
+</div>
 
-    <!-- الحد الأدنى -->
-    <h2>الحد الأدنى لكل تخصص</h2>
-    <div class="section">
-        <div class="scroll-box">
-            <table id="minTable">
-                <tr>
-                    <th>التخصص</th>
-                    <th>حد عام</th>
-                    <th>حد موازي</th>
-                    <th>حد صحة</th>
-                </tr>
-            </table>
-        </div>
-    </div>
+<!-- المرفوضين -->
+<h2>الطلاب المرفوضون</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="rejectedTable">
+<tr>
+    <th>الاسم</th>
+    <th>الرقم</th>
+    <th>المعدل</th>
+</tr>
+</table>
+</div>
+</div>
+
+<!-- الحد الأدنى -->
+<h2>الحد الأدنى حسب المقاعد – دراسات عليا (عام) – دراسات عليا (موازي) – وزارة الصحة</h2>
+<div class="section">
+<div class="scroll-box">
+<table id="minTable">
+<tr>
+    <th>التخصص</th>
+    <th>حد عام</th>
+    <th>حد موازي</th>
+    <th>حد صحة</th>
+</tr>
+</table>
+</div>
+</div>
+
+<!-- حذف النتائج -->
+<h2>النتائج</h2>
+<div class="section">
+<button onclick="deleteResults()">حذف النتائج</button>
+</div>
 
 </div>
 
@@ -125,6 +156,7 @@ button:hover {
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+/* Firebase Config */
 const firebaseConfig = {
     apiKey: "AIzaSyA9PmgtkNuY25DEy6_G30tryB-d4s3l_2g",
     authDomain: "medical-form-80f5a.firebaseapp.com",
@@ -137,6 +169,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+/* قائمة التخصصات */
 const specialties = [
 "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية",
 "الداخلية العصبية","الداخلية الدموية","الداخلية الكلوية","الداخلية الرثوية","الداخلية الخمجية",
@@ -147,7 +180,7 @@ const specialties = [
 "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
 ];
 
-// تحميل جدول المقاعد
+/* تحميل المقاعد */
 function loadSeats() {
     const table = document.getElementById("seatsTable");
 
@@ -172,7 +205,7 @@ function loadSeats() {
     });
 }
 
-// حفظ المقاعد
+/* حفظ المقاعد */
 function saveSeats() {
     const seats = {};
 
@@ -188,7 +221,7 @@ function saveSeats() {
     alert("تم حفظ المقاعد");
 }
 
-// تحميل الطلاب
+/* تحميل الطلاب */
 function loadStudents() {
     db.ref("students").on("value", snap => {
         const table = document.getElementById("studentsTable");
@@ -216,24 +249,27 @@ function loadStudents() {
     });
 }
 
+/* حذف طالب */
 function deleteStudent(exam) {
     db.ref("students/" + exam).remove();
 }
 
+/* حذف جميع الطلاب */
 function deleteAllStudents() {
-    if (confirm("هل أنت متأكد من حذف جميع الطلاب؟")) {
+    if (confirm("هل أنت متأكد؟")) {
         db.ref("students").remove();
     }
 }
 
+/* حذف النتائج */
 function deleteResults() {
     db.ref("results").remove();
     db.ref("min_scores").remove();
     db.ref("seats_used").remove();
-    alert("تم حذف النتائج والحدود الدنيا");
+    alert("تم حذف النتائج");
 }
 
-// حساب الحد الأدنى لكل تخصص ولكل نوع
+/* حساب الحد الأدنى */
 async function calculateMinScores(results) {
     const minScores = {};
 
@@ -253,8 +289,6 @@ async function calculateMinScores(results) {
         if (type === "دراسات موازي") key = "موازي";
         if (type === "وزارة الصحة") key = "صحة";
 
-        if (!key) return;
-
         if (minScores[spec][key] === null || score < minScores[spec][key]) {
             minScores[spec][key] = score;
         }
@@ -263,12 +297,11 @@ async function calculateMinScores(results) {
     await db.ref("min_scores").set(minScores);
 }
 
-// تنفيذ القبول التلقائي مع إعادة توزيع كاملة
+/* تنفيذ القبول التلقائي */
 async function runAcceptance() {
     const seatsSnap = await db.ref("seats").once("value");
     const seatsOriginal = seatsSnap.val() || {};
 
-    // نسخة جديدة من المقاعد لإعادة التوزيع من الصفر
     const seats = JSON.parse(JSON.stringify(seatsOriginal));
 
     const studentsSnap = await db.ref("students").once("value");
@@ -276,7 +309,6 @@ async function runAcceptance() {
 
     studentsSnap.forEach(s => students.push(s.val()));
 
-    // ترتيب الطلاب حسب المعدل تنازليًا
     students.sort((a,b) => Number(b.score) - Number(a.score));
 
     const results = {};
@@ -291,33 +323,34 @@ async function runAcceptance() {
             const type = st.choices[i].type;
 
             if (!spec || !type) continue;
-            if (!seats[spec]) continue;
 
             let seatKey = "";
             if (type === "دراسات عام") seatKey = "عام";
             if (type === "دراسات موازي") seatKey = "موازي";
             if (type === "وزارة الصحة") seatKey = "صحة";
 
-            if (!seatKey) continue;
-            if (!seats[spec][seatKey] || seats[spec][seatKey] <= 0) continue;
-
-            // قبول الطالب في هذه الرغبة
-            seats[spec][seatKey]--;
-            results[st.exam] = {
-                accepted: true,
-                specialty: spec,
-                type: type,
-                choiceNumber: i,
-                score: Number(st.score)
-            };
-            accepted = true;
-            break;
+            if (seats[spec][seatKey] > 0) {
+                seats[spec][seatKey]--;
+                results[st.exam] = {
+                    accepted: true,
+                    specialty: spec,
+                    type: type,
+                    choiceNumber: i,
+                    score: Number(st.score),
+                    name: st.name,
+                    exam: st.exam
+                };
+                accepted = true;
+                break;
+            }
         }
 
         if (!accepted) {
             results[st.exam] = {
                 accepted: false,
-                score: Number(st.score)
+                score: Number(st.score),
+                name: st.name,
+                exam: st.exam
             };
         }
     });
@@ -327,7 +360,67 @@ async function runAcceptance() {
     await calculateMinScores(results);
 }
 
-// عرض جدول الحد الأدنى
+/* عرض المقبولين */
+function loadAccepted() {
+    db.ref("results").on("value", snap => {
+        const table = document.getElementById("acceptedTable");
+        table.innerHTML = `
+            <tr>
+                <th>الاسم</th>
+                <th>الرقم</th>
+                <th>المعدل</th>
+                <th>التخصص المقبول</th>
+                <th>نوع المقعد</th>
+                <th>رقم الرغبة</th>
+            </tr>
+        `;
+
+        snap.forEach(s => {
+            const r = s.val();
+            if (!r.accepted) return;
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${r.name}</td>
+                <td>${r.exam}</td>
+                <td>${r.score}</td>
+                <td>${r.specialty}</td>
+                <td>${r.type}</td>
+                <td>${r.choiceNumber}</td>
+            `;
+            table.appendChild(row);
+        });
+    });
+}
+
+/* عرض المرفوضين */
+function loadRejected() {
+    db.ref("results").on("value", snap => {
+        const table = document.getElementById("rejectedTable");
+        table.innerHTML = `
+            <tr>
+                <th>الاسم</th>
+                <th>الرقم</th>
+                <th>المعدل</th>
+            </tr>
+        `;
+
+        snap.forEach(s => {
+            const r = s.val();
+            if (r.accepted) return;
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${r.name}</td>
+                <td>${r.exam}</td>
+                <td>${r.score}</td>
+            `;
+            table.appendChild(row);
+        });
+    });
+}
+
+/* عرض الحد الأدنى */
 function loadMinScores() {
     db.ref("min_scores").on("value", snap => {
         const table = document.getElementById("minTable");
@@ -347,22 +440,25 @@ function loadMinScores() {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${spec}</td>
-                <td>${m.عام   ?? "—"}</td>
+                <td>${m.عام ?? "—"}</td>
                 <td>${m.موازي ?? "—"}</td>
-                <td>${m.صحة   ?? "—"}</td>
+                <td>${m.صحة ?? "—"}</td>
             `;
             table.appendChild(row);
         });
     });
 }
 
-// تشغيل القبول تلقائيًا عند أي تغيير في الطلاب
+/* تشغيل القبول تلقائيًا */
 db.ref("students").on("value", () => {
     runAcceptance();
 });
 
+/* تحميل كل شيء */
 loadSeats();
 loadStudents();
+loadAccepted();
+loadRejected();
 loadMinScores();
 </script>
 
