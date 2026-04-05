@@ -11,7 +11,6 @@ body {
     padding: 0;
 }
 
-/* شاشة تسجيل الدخول */
 #loginBox {
     max-width: 400px;
     margin: 120px auto;
@@ -46,7 +45,6 @@ body {
     font-size: 14px;
 }
 
-/* لوحة الإدارة */
 #adminPanel {
     display: none;
 }
@@ -102,7 +100,6 @@ button:hover {
     border-radius: 8px;
 }
 
-/* زر تحديث النتائج */
 #floatingBtn {
     position: fixed;
     bottom: 25px;
@@ -123,10 +120,8 @@ button:hover {
 </head>
 <body>
 
-<!-- زر تحديث النتائج -->
 <div id="floatingBtn" onclick="runAcceptance()">تحديث النتائج</div>
 
-<!-- شاشة تسجيل الدخول -->
 <div id="loginBox">
     <h2>تسجيل الدخول للوحة الإدارة</h2>
     <input type="password" id="adminPass" placeholder="أدخل كلمة السر">
@@ -134,28 +129,24 @@ button:hover {
     <div id="errorMsg"></div>
 </div>
 
-<!-- لوحة الإدارة -->
 <div id="adminPanel">
-
 <div class="container">
 
-<!-- إدارة المقاعد -->
 <h2>إدارة المقاعد</h2>
 <div class="section">
 <div class="scroll-box">
 <table id="seatsTable">
 <tr>
     <th>التخصص</th>
-    <th>مقاعد عام</th>
-    <th>مقاعد موازي</th>
-    <th>مقاعد وزارة الصحة</th>
+    <th>عام</th>
+    <th>موازي</th>
+    <th>صحة</th>
 </tr>
 </table>
 </div>
 <button onclick="saveSeats()">حفظ المقاعد</button>
 </div>
 
-<!-- الطلاب -->
 <h2>الطلاب المسجلون</h2>
 <div class="section">
 <table id="studentsTable">
@@ -170,7 +161,6 @@ button:hover {
 <button onclick="deleteAllStudents()">حذف جميع الطلاب</button>
 </div>
 
-<!-- المقبولين -->
 <h2>الطلاب المقبولون</h2>
 <div class="section">
 <div class="scroll-box">
@@ -179,15 +169,14 @@ button:hover {
     <th>الاسم</th>
     <th>الرقم</th>
     <th>المعدل</th>
-    <th>التخصص المقبول</th>
+    <th>التخصص</th>
     <th>نوع المقعد</th>
-    <th>رقم الرغبة</th>
+    <th>الرغبة</th>
 </tr>
 </table>
 </div>
 </div>
 
-<!-- المرفوضين -->
 <h2>الطلاب المرفوضون</h2>
 <div class="section">
 <div class="scroll-box">
@@ -201,26 +190,21 @@ button:hover {
 </div>
 </div>
 
-<!-- الحد الأدنى -->
-<h2>الحد الأدنى حسب المقاعد – دراسات عليا (عام) – دراسات عليا (موازي) – وزارة الصحة</h2>
+<h2>الحد الأدنى</h2>
 <div class="section">
 <div class="scroll-box">
 <table id="minTable">
 <tr>
     <th>التخصص</th>
-    <th>حد عام</th>
-    <th>حد موازي</th>
-    <th>حد صحة</th>
+    <th>عام</th>
+    <th>موازي</th>
+    <th>صحة</th>
 </tr>
 </table>
 </div>
 </div>
 
-<!-- حذف النتائج -->
-<h2>النتائج</h2>
-<div class="section">
 <button onclick="deleteResults()">حذف النتائج</button>
-</div>
 
 </div>
 </div>
@@ -366,9 +350,9 @@ function loadAccepted() {
                 <th>الاسم</th>
                 <th>الرقم</th>
                 <th>المعدل</th>
-                <th>التخصص المقبول</th>
+                <th>التخصص</th>
                 <th>نوع المقعد</th>
-                <th>رقم الرغبة</th>
+                <th>الرغبة</th>
             </tr>
         `;
 
@@ -424,9 +408,9 @@ function loadMinScores() {
         table.innerHTML = `
             <tr>
                 <th>التخصص</th>
-                <th>حد عام</th>
-                <th>حد موازي</th>
-                <th>حد صحة</th>
+                <th>عام</th>
+                <th>موازي</th>
+                <th>صحة</th>
             </tr>
         `;
 
@@ -447,14 +431,16 @@ function loadMinScores() {
 }
 /* حساب الحد الأدنى */
 async function calculateMinScores(results) {
+
     const minScores = {};
 
     specialties.forEach(spec => {
         minScores[spec] = { عام: "—", موازي: "—", صحة: "—" };
     });
 
-    Object.values(results).forEach(r => {
-        if (!r.accepted) return;
+    for (const r of Object.values(results)) {
+
+        if (!r.accepted) continue;
 
         const spec = r.specialty;
         const type = r.type;
@@ -468,7 +454,7 @@ async function calculateMinScores(results) {
         if (minScores[spec][key] === "—" || score < minScores[spec][key]) {
             minScores[spec][key] = score;
         }
-    });
+    }
 
     await db.ref("min_scores").set(minScores);
 }
@@ -477,43 +463,40 @@ async function calculateMinScores(results) {
 async function runAcceptance() {
 
     const seatsSnap = await db.ref("seats").once("value");
-    const seatsOriginal = seatsSnap.val() || {};
-
-    const seats = JSON.parse(JSON.stringify(seatsOriginal));
+    const seats = seatsSnap.val() || {};
 
     const studentsSnap = await db.ref("students").once("value");
     const students = [];
 
     studentsSnap.forEach(s => students.push(s.val()));
 
-    // 🔥 ترتيب الطلاب حسب المعدل
-    students.sort((a,b) => Number(b.score) - Number(a.score));
+    // ترتيب الطلاب حسب المعدل
+    students.sort((a, b) => Number(b.score) - Number(a.score));
 
     const results = {};
 
-    students.forEach(st => {
+    for (const st of students) {
+
         let accepted = false;
 
         for (let i = 1; i <= 10; i++) {
 
-            if (!st.choices || !st.choices[i]) continue;
+            const choice = st.choices?.[i];
+            if (!choice) continue;
 
-            const spec = st.choices[i].specialty;
-            const type = st.choices[i].type;
+            const spec = choice.specialty;
+            const type = choice.type;
 
             if (!spec || !type) continue;
 
-            // 🔥 تحديد نوع المقعد بشكل مرن
             let seatKey = "";
             if (type.includes("عام")) seatKey = "عام";
             if (type.includes("موازي")) seatKey = "موازي";
             if (type.includes("صحة")) seatKey = "صحة";
 
-            // 🔥 حماية من undefined
             if (!seats[spec]) continue;
             if (seats[spec][seatKey] === undefined) continue;
 
-            // 🔥 إذا في مقعد متاح
             if (Number(seats[spec][seatKey]) > 0) {
 
                 seats[spec][seatKey]--;
@@ -529,7 +512,7 @@ async function runAcceptance() {
                 };
 
                 accepted = true;
-                break; // 🔥 يمنع أخذ مقعد من الرغبات التالية
+                break;
             }
         }
 
@@ -541,12 +524,10 @@ async function runAcceptance() {
                 exam: st.exam
             };
         }
-    });
+    }
 
     await db.ref("results").set(results);
     await db.ref("seats_used").set(seats);
-
-    await new Promise(resolve => setTimeout(resolve, 300));
 
     await calculateMinScores(results);
 
