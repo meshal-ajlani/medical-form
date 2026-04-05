@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>لوحة الإدارة</title>
+
 <style>
     body {
         font-family: "Cairo", sans-serif;
@@ -14,15 +15,20 @@
         text-align: center;
         margin-bottom: 30px;
     }
+    .section-title {
+        font-size: 22px;
+        margin: 25px 0 10px;
+        font-weight: bold;
+    }
     table {
         width: 100%;
         border-collapse: collapse;
         background: white;
-        margin-bottom: 40px;
+        margin-bottom: 20px;
     }
     th, td {
         border: 1px solid #ddd;
-        padding: 10px;
+        padding: 8px;
         text-align: center;
     }
     th {
@@ -45,10 +51,12 @@
     button:hover {
         background: #0056b3;
     }
-    .section-title {
-        font-size: 22px;
-        margin: 20px 0 10px;
-        font-weight: bold;
+    .scroll-box {
+        max-height: 350px;
+        overflow-y: scroll;
+        border: 2px solid #ccc;
+        background: white;
+        margin-bottom: 20px;
     }
 </style>
 
@@ -70,12 +78,15 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 </script>
 </head>
+
 <body>
 
 <h1>لوحة الإدارة</h1>
 
+<!-- ===================== جدول المقاعد ===================== -->
 <div class="section-title">تعديل المقاعد</div>
 
+<div class="scroll-box">
 <table id="seatsTable">
     <tr>
         <th>التخصص</th>
@@ -85,23 +96,60 @@ const db = firebase.database();
         <th>حفظ</th>
     </tr>
 </table>
+</div>
 
 <button onclick="saveAllSeats()">حفظ جميع المقاعد</button>
 
+
+<!-- ===================== جدول المقبولين ===================== -->
+<div class="section-title">المقبولون</div>
+<div class="scroll-box">
+<table id="acceptedTable">
+    <tr>
+        <th>الاسم</th>
+        <th>العلامة</th>
+        <th>الاختصاص</th>
+        <th>نوع التسجيل</th>
+    </tr>
+</table>
+</div>
+
+<!-- ===================== جدول المرفوضين ===================== -->
+<div class="section-title">المرفوضون</div>
+<div class="scroll-box">
+<table id="rejectedTable">
+    <tr>
+        <th>الاسم</th>
+        <th>العلامة</th>
+        <th>الحالة</th>
+    </tr>
+</table>
+</div>
+
+<!-- ===================== جدول الحد الأدنى ===================== -->
+<div class="section-title">الحد الأدنى لكل اختصاص</div>
+<div class="scroll-box">
+<table id="minTable">
+    <tr>
+        <th>الاختصاص</th>
+        <th>الحد الأدنى</th>
+    </tr>
+</table>
+</div>
+
+
 <script>
-// تحميل التخصصات من الجذر مباشرة
+
+// ================= تحميل التخصصات =================
 function loadSpecialties() {
     db.ref("/").once("value", snapshot => {
         const data = snapshot.val();
         const table = document.getElementById("seatsTable");
 
         for (let key in data) {
-            // نتأكد إنه هذا المفتاح هو تخصص (عام/موازي/صحة)
             if (
                 typeof data[key] === "object" &&
-                data[key].hasOwnProperty("عام") &&
-                data[key].hasOwnProperty("موازي") &&
-                data[key].hasOwnProperty("صحة")
+                data[key].hasOwnProperty("عام")
             ) {
                 const row = document.createElement("tr");
 
@@ -118,93 +166,82 @@ function loadSpecialties() {
         }
     });
 }
-// تحميل التخصصات من الجذر مباشرة
-function loadSpecialties() {
+
+
+// ================= حفظ تخصص واحد =================
+function saveSeat(name) {
+    const a = Number(document.getElementById(`${name}-عام`).value);
+    const m = Number(document.getElementById(`${name}-موازي`).value);
+    const s = Number(document.getElementById(`${name}-صحة`).value);
+
+    db.ref(name).set({
+        "عام": a,
+        "موازي": m,
+        "صحة": s
+    }).then(() => runAcceptance());
+}
+
+
+// ================= حفظ جميع التخصصات =================
+function saveAllSeats() {
     db.ref("/").once("value", snapshot => {
         const data = snapshot.val();
-        const table = document.getElementById("seatsTable");
+        let updates = {};
 
         for (let key in data) {
-            // نتأكد إنه هذا المفتاح هو تخصص (عام/موازي/صحة)
-            if (
-                typeof data[key] === "object" &&
-                data[key].hasOwnProperty("عام") &&
-                data[key].hasOwnProperty("موازي") &&
-                data[key].hasOwnProperty("صحة")
-            ) {
-                const row = document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>${key}</td>
-                    <td><input id="${key}-عام" type="number" value="${data[key].عام}"></td>
-                    <td><input id="${key}-موازي" type="number" value="${data[key].موازي}"></td>
-                    <td><input id="${key}-صحة" type="number" value="${data[key].صحة}"></td>
-                    <td><button onclick="saveSeat('${key}')">حفظ</button></td>
-                `;
-
-                table.appendChild(row);
+            if (typeof data[key] === "object" && data[key].hasOwnProperty("عام")) {
+                updates[key] = {
+                    "عام": Number(document.getElementById(`${key}-عام`).value),
+                    "موازي": Number(document.getElementById(`${key}-موازي`).value),
+                    "صحة": Number(document.getElementById(`${key}-صحة`).value)
+                };
             }
         }
+
+        db.ref("/").update(updates).then(() => runAcceptance());
     });
 }
-// دالة القبول التلقائي
+
+
+// ================= القبول التلقائي =================
 function runAcceptance() {
     db.ref("/students").once("value", snap => {
         const students = snap.val() || {};
         let arr = [];
 
-        // إذا ما في طلاب → فقط حدث الحد الأدنى وارجع
         if (!students || Object.keys(students).length === 0) {
-            db.ref("min_scores").set({});
             db.ref("results").set({});
+            db.ref("min_scores").set({});
+            renderResults({}, {});
             return;
         }
 
-        // تحويل الطلاب لمصفوفة
         for (let id in students) {
             arr.push({
                 id: id,
                 name: students[id].name,
                 score: students[id].score,
-                type: students[id].type, // عام/موازي/صحة
+                type: students[id].type,
                 choices: students[id].choices
             });
         }
 
-        // ترتيب الطلاب حسب العلامة
         arr.sort((a, b) => b.score - a.score);
 
-        // تحميل المقاعد (التخصصات)
         db.ref("/").once("value", snapshot => {
             const data = snapshot.val();
             let seats = {};
+            let used = {};
+            let results = {};
+            let minScores = {};
 
-            // استخراج التخصصات من الجذر
             for (let key in data) {
-                if (
-                    typeof data[key] === "object" &&
-                    data[key].hasOwnProperty("عام") &&
-                    data[key].hasOwnProperty("موازي") &&
-                    data[key].hasOwnProperty("صحة")
-                ) {
-                    seats[key] = {
-                        "عام": data[key].عام,
-                        "موازي": data[key].موازي,
-                        "صحة": data[key].صحة
-                    };
+                if (typeof data[key] === "object" && data[key].hasOwnProperty("عام")) {
+                    seats[key] = data[key];
+                    used[key] = { "عام": 0, "موازي": 0, "صحة": 0 };
                 }
             }
 
-            let used = {};       // المقاعد المستخدمة
-            let results = {};    // نتائج القبول
-            let minScores = {};  // الحد الأدنى
-
-            // تهيئة المقاعد المستخدمة
-            for (let sp in seats) {
-                used[sp] = { "عام": 0, "موازي": 0, "صحة": 0 };
-            }
-
-            // توزيع الطلاب
             arr.forEach(st => {
                 for (let choice of st.choices) {
                     if (!seats[choice]) continue;
@@ -219,7 +256,6 @@ function runAcceptance() {
                             type: type
                         };
 
-                        // تحديث الحد الأدنى
                         if (!minScores[choice] || st.score < minScores[choice]) {
                             minScores[choice] = st.score;
                         }
@@ -228,7 +264,6 @@ function runAcceptance() {
                     }
                 }
 
-                // إذا لم يُقبل
                 results[st.id] = {
                     name: st.name,
                     score: st.score,
@@ -237,14 +272,66 @@ function runAcceptance() {
                 };
             });
 
-            // حفظ النتائج
             db.ref("results").set(results);
             db.ref("min_scores").set(minScores);
+
+            renderResults(results, minScores);
         });
     });
 }
 
-// تشغيل القبول عند فتح الصفحة
+
+// ================= عرض النتائج =================
+function renderResults(results, minScores) {
+    const acceptedTable = document.getElementById("acceptedTable");
+    const rejectedTable = document.getElementById("rejectedTable");
+    const minTable = document.getElementById("minTable");
+
+    acceptedTable.innerHTML = `
+        <tr><th>الاسم</th><th>العلامة</th><th>الاختصاص</th><th>نوع التسجيل</th></tr>
+    `;
+    rejectedTable.innerHTML = `
+        <tr><th>الاسم</th><th>العلامة</th><th>الحالة</th></tr>
+    `;
+    minTable.innerHTML = `
+        <tr><th>الاختصاص</th><th>الحد الأدنى</th></tr>
+    `;
+
+    for (let id in results) {
+        let r = results[id];
+
+        if (r.accepted !== "مرفوض") {
+            acceptedTable.innerHTML += `
+                <tr>
+                    <td>${r.name}</td>
+                    <td>${r.score}</td>
+                    <td>${r.accepted}</td>
+                    <td>${r.type}</td>
+                </tr>
+            `;
+        } else {
+            rejectedTable.innerHTML += `
+                <tr>
+                    <td>${r.name}</td>
+                    <td>${r.score}</td>
+                    <td>مرفوض</td>
+                </tr>
+            `;
+        }
+    }
+
+    for (let sp in minScores) {
+        minTable.innerHTML += `
+            <tr>
+                <td>${sp}</td>
+                <td>${minScores[sp]}</td>
+            </tr>
+        `;
+    }
+}
+
+
+// تشغيل الصفحة
 loadSpecialties();
 runAcceptance();
 
