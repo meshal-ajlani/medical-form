@@ -12,7 +12,7 @@ body {
     padding: 20px;
 }
 .container {
-    max-width: 600px;
+    max-width: 750px;
     margin: auto;
     background: #fff;
     padding: 25px;
@@ -49,6 +49,13 @@ button {
 button:hover {
     background: #095e94;
 }
+.row {
+    display: flex;
+    gap: 10px;
+}
+.row select {
+    flex: 1;
+}
 </style>
 </head>
 
@@ -67,149 +74,64 @@ button:hover {
     <label>المعدل</label>
     <input id="grade" type="number" step="0.01">
 
-    <!-- الرغبة الأولى -->
-    <label>الرغبة الأولى</label>
-    <select id="choice1">
-        <option value="">اختر</option>
-        <option>الداخلية العامة</option>
-        <option>الداخلية القلبية</option>
-        <option>الداخلية الهضمية</option>
-        <option>الداخلية الصدرية</option>
-        <option>الداخلية الغدية</option>
-        <option>الداخلية العصبية</option>
-        <option>الداخلية الدموية</option>
-        <option>الداخلية الكلية</option>
-        <option>الداخلية الرئوية</option>
-        <option>الداخلية الخمجية</option>
-        <option>الطب النفسي</option>
-        <option>العينية</option>
-        <option>الأذنية</option>
-        <option>الجلدية</option>
-        <option>طب الأطفال</option>
-        <option>النسائية والتوليد</option>
-        <option>الجراحة العامة</option>
-        <option>الجراحة العظمية</option>
-        <option>الجراحة البولية</option>
-        <option>الجراحة الصدرية</option>
-        <option>الجراحة العصبية</option>
-        <option>الجراحة التجميلية</option>
-        <option>الجراحة القلبية</option>
-        <option>جراحة الأوعية</option>
-        <option>جراحة الأطفال</option>
-        <option>الطب المخبري</option>
-        <option>التصوير الطبي والشعاعي</option>
-        <option>التشريح المرضي</option>
-        <option>طب الأورام</option>
-        <option>طب الأسرة</option>
-        <option>الطب الشرعي</option>
-        <option>طب الطوارئ</option>
-        <option>التخدير والإنعاش</option>
-        <option>الطب الفيزيائي</option>
-        <option>الطب النووي</option>
-        <option>المعالجة الشعاعية للأورام</option>
-    </select>
+    <h2 style="color:#0a6fae; margin-top:20px;">الرغبات (10 رغبات)</h2>
 
-    <!-- الرغبة الثانية -->
-    <label>الرغبة الثانية</label>
-    <select id="choice2">
-        <option value="">اختر</option>
-        <option>الداخلية العامة</option>
-        <option>الداخلية القلبية</option>
-        <option>الداخلية الهضمية</option>
-        <option>الداخلية الصدرية</option>
-        <option>الداخلية الغدية</option>
-        <option>الداخلية العصبية</option>
-        <option>الداخلية الدموية</option>
-        <option>الداخلية الكلية</option>
-        <option>الداخلية الرئوية</option>
-        <option>الداخلية الخمجية</option>
-        <option>الطب النفسي</option>
-        <option>العينية</option>
-        <option>الأذنية</option>
-        <option>الجلدية</option>
-        <option>طب الأطفال</option>
-        <option>النسائية والتوليد</option>
-        <option>الجراحة العامة</option>
-        <option>الجراحة العظمية</option>
-        <option>الجراحة البولية</option>
-        <option>الجراحة الصدرية</option>
-        <option>الجراحة العصبية</option>
-        <option>الجراحة التجميلية</option>
-        <option>الجراحة القلبية</option>
-        <option>جراحة الأوعية</option>
-        <option>جراحة الأطفال</option>
-        <option>الطب المخبري</option>
-        <option>التصوير الطبي والشعاعي</option>
-        <option>التشريح المرضي</option>
-        <option>طب الأورام</option>
-        <option>طب الأسرة</option>
-        <option>الطب الشرعي</option>
-        <option>طب الطوارئ</option>
-        <option>التخدير والإنعاش</option>
-        <option>الطب الفيزيائي</option>
-        <option>الطب النووي</option>
-        <option>المعالجة الشعاعية للأورام</option>
-    </select>
-
-    <!-- الرغبة الثالثة -->
-    <label>الرغبة الثالثة</label>
-    <select id="choice3">
-        <option value="">اختر</option>
-        <option>الداخلية العامة</option>
-        <option>الداخلية القلبية</option>
-        <option>الداخلية الهضمية</option>
-        <option>الداخلية الصدرية</option>
-        <option>الداخلية الغدية</option>
-        <option>الداخلية العصبية</option>
-        <option>الداخلية الدموية</option>
-        <option>الداخلية الكلية</option>
-        <option>الداخلية الرئوية</option>
-        <option>الداخلية الخمجية</option>
-        <option>الطب النفسي</option>
-        <option>العينية</option>
-        <option>الأذنية</option>
-        <option>الجلدية</option>
-        <option>طب الأطفال</option>
-        <option>النسائية والتوليد</option>
-        <option>الجراحة العامة</option>
-        <option>الجراحة العظمية</option>
-        <option>الجراحة البولية</option>
-        <option>الجراحة الصدرية</option>
-        <option>الجراحة العصبية</option>
-        <option>الجراحة التجميلية</option>
-        <option>الجراحة القلبية</option>
-        <option>جراحة الأوعية</option>
-        <option>جراحة الأطفال</option>
-        <option>الطب المخبري</option>
-        <option>التصوير الطبي والشعاعي</option>
-        <option>التشريح المرضي</option>
-        <option>طب الأورام</option>
-        <option>طب الأسرة</option>
-        <option>الطب الشرعي</option>
-        <option>طب الطوارئ</option>
-        <option>التخدير والإنعاش</option>
-        <option>الطب الفيزيائي</option>
-        <option>الطب النووي</option>
-        <option>المعالجة الشعاعية للأورام</option>
-    </select>
+    <div id="choicesContainer"></div>
 
     <button onclick="submitForm()">تسجيل</button>
 
 </div>
 
 <script>
+const specialties = [
+    "الداخلية العامة",
+    "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
+    "الداخلية الدموية","الداخلية الكلية","الداخلية الرئوية","الداخلية الخمجية",
+    "الطب النفسي","العينية","الأذنية","الجلدية",
+    "طب الأطفال","النسائية والتوليد",
+    "الجراحة العامة","الجراحة العظمية","الجراحة البولية","الجراحة الصدرية","الجراحة العصبية",
+    "الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية","جراحة الأطفال",
+    "الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي",
+    "طب الأورام","طب الأسرة","الطب الشرعي","طب الطوارئ","التخدير والإنعاش",
+    "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
+];
+
+function createChoiceRow(num) {
+    let options = specialties.map(s => `<option>${s}</option>`).join("");
+
+    return `
+        <label>الرغبة رقم ${num}</label>
+        <div class="row">
+            <select id="choice${num}">
+                <option value="">اختر التخصص</option>
+                ${options}
+            </select>
+
+            <select id="type${num}">
+                <option value="">نوع المقعد</option>
+                <option>دراسات عليا عام</option>
+                <option>دراسات عليا موازي</option>
+                <option>وزارة الصحة</option>
+            </select>
+        </div>
+    `;
+}
+
+document.getElementById("choicesContainer").innerHTML =
+    Array.from({length: 10}, (_, i) => createChoiceRow(i+1)).join("");
+
 function submitForm() {
     const name = document.getElementById("name").value;
     const exam = document.getElementById("exam").value;
     const grade = parseFloat(document.getElementById("grade").value);
 
-    const choices = [
-        document.getElementById("choice1").value,
-        document.getElementById("choice2").value,
-        document.getElementById("choice3").value
-    ];
+    const choices = [];
+    const types = [];
 
-    const types = ["عام", "عام", "عام"];
+    for (let i = 1; i <= 10; i++) {
+        choices.push(document.getElementById("choice"+i).value);
+        types.push(document.getElementById("type"+i).value);
+    }
 
     let students = JSON.parse(localStorage.getItem("students") || "[]");
 
@@ -223,7 +145,6 @@ function submitForm() {
 
     localStorage.setItem("students", JSON.stringify(students));
 
-    // الانتقال لصفحة النتائج
     window.location.href = "results.html";
 }
 </script>
