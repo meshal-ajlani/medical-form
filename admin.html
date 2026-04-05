@@ -38,8 +38,17 @@ th {
     background: #dff3f6;
     color: #0a6fae;
 }
-tr:nth-child(even) td {
-    background: #f7fcfd;
+.scroll-box {
+    max-height: 300px;
+    overflow-y: scroll;
+    border: 2px solid #cfe3e6;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f9fdfd;
+}
+input[type="number"] {
+    width: 80px;
+    padding: 5px;
 }
 button {
     padding: 10px 20px;
@@ -68,6 +77,20 @@ button:hover {
 
     <h1>لوحة الإدارة</h1>
 
+    <h2 style="color:#0a6fae;">إدارة المقاعد</h2>
+
+    <div class="scroll-box">
+        <table id="seatsTable">
+            <tr>
+                <th>التخصص</th>
+                <th>العام</th>
+                <th>الموازي</th>
+                <th>الصحة</th>
+            </tr>
+        </table>
+    </div>
+
+    <button onclick="saveSeats()">حفظ المقاعد</button>
     <button onclick="updateResults()">تحديث النتائج</button>
     <button class="delete-btn" onclick="deleteAllStudents()">حذف جميع الطلاب</button>
 
@@ -107,7 +130,7 @@ button:hover {
 
 <script>
 
-// قائمة التخصصات كاملة
+// قائمة التخصصات
 const specialties = [
     "الداخلية العامة",
     "الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
@@ -121,11 +144,40 @@ const specialties = [
     "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
 ];
 
-// تحويل نوع المقعد
-function typeMap(type) {
-    if (type.includes("عام")) return "general";
-    if (type.includes("موازي")) return "parallel";
-    return "health";
+// تحميل المقاعد
+function loadSeats() {
+    let seats = JSON.parse(localStorage.getItem("seats") || "{}");
+
+    const table = document.getElementById("seatsTable");
+
+    specialties.forEach(spec => {
+        if (!seats[spec]) seats[spec] = { general: 0, parallel: 0, health: 0 };
+
+        table.innerHTML += `
+            <tr>
+                <td>${spec}</td>
+                <td><input type="number" id="${spec}-general" value="${seats[spec].general}"></td>
+                <td><input type="number" id="${spec}-parallel" value="${seats[spec].parallel}"></td>
+                <td><input type="number" id="${spec}-health" value="${seats[spec].health}"></td>
+            </tr>
+        `;
+    });
+}
+
+// حفظ المقاعد
+function saveSeats() {
+    let seats = {};
+
+    specialties.forEach(spec => {
+        seats[spec] = {
+            general: parseInt(document.getElementById(`${spec}-general`).value || 0),
+            parallel: parseInt(document.getElementById(`${spec}-parallel`).value || 0),
+            health: parseInt(document.getElementById(`${spec}-health`).value || 0)
+        };
+    });
+
+    localStorage.setItem("seats", JSON.stringify(seats));
+    alert("تم حفظ المقاعد بنجاح");
 }
 
 // حذف الطلاب
@@ -136,18 +188,19 @@ function deleteAllStudents() {
     }
 }
 
+// تحويل نوع المقعد
+function typeMap(type) {
+    if (type.includes("عام")) return "general";
+    if (type.includes("موازي")) return "parallel";
+    return "health";
+}
+
 // تحديث النتائج
 function updateResults() {
     const students = JSON.parse(localStorage.getItem("students") || "[]");
+    let seats = JSON.parse(localStorage.getItem("seats") || "{}");
 
-    // ترتيب الطلاب حسب المعدل
     students.sort((a, b) => b.grade - a.grade);
-
-    // المقاعد الافتراضية (يمكنك تعديلها لاحقًا)
-    const seats = {};
-    specialties.forEach(s => {
-        seats[s] = { general: 3, parallel: 3, health: 3 };
-    });
 
     const accepted = [];
     const rejected = [];
@@ -279,6 +332,7 @@ function fillRejected(list) {
     });
 }
 
+loadSeats();
 updateResults();
 
 </script>
