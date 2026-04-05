@@ -233,16 +233,19 @@ function typeMap(type) {
     return "health";
 }
 
-// التوزيع
+// التوزيع النهائي الصحيح
 function updateResults() {
     const students = JSON.parse(localStorage.getItem("students") || "[]");
-    const seats = JSON.parse(localStorage.getItem("seats") || "{}");
+    const seatsOriginal = JSON.parse(localStorage.getItem("seats") || "{}");
+
+    const seats = JSON.parse(JSON.stringify(seatsOriginal));
 
     const accepted = [];
     const rejected = [];
     const minScores = {};
 
-    const seatsCopy = JSON.parse(JSON.stringify(seats));
+    // ترتيب الطلاب حسب المعدل
+    students.sort((a, b) => b.grade - a.grade);
 
     students.forEach(student => {
         let assigned = false;
@@ -255,8 +258,8 @@ function updateResults() {
 
             const seatKey = typeMap(type);
 
-            if (seatsCopy[spec][seatKey] > 0) {
-                seatsCopy[spec][seatKey]--;
+            if (seats[spec][seatKey] > 0) {
+                seats[spec][seatKey]--;
 
                 accepted.push({
                     name: student.name,
