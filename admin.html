@@ -35,7 +35,7 @@ th, td {
 th {
     background: #e8f0fe;
 }
-input, select {
+input {
     padding: 6px;
     width: 100%;
 }
@@ -53,6 +53,13 @@ button:hover {
 .section {
     margin-bottom: 30px;
 }
+.scroll-box {
+    max-height: 400px;
+    overflow-y: scroll;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+}
 </style>
 </head>
 <body>
@@ -61,12 +68,18 @@ button:hover {
 
 <h2>إدارة المقاعد</h2>
 <div class="section">
+
+<div class="scroll-box">
 <table id="seatsTable">
 <tr>
     <th>التخصص</th>
-    <th>عدد المقاعد</th>
+    <th>مقاعد عام</th>
+    <th>مقاعد موازي</th>
+    <th>مقاعد وزارة الصحة</th>
 </tr>
 </table>
+</div>
+
 <button onclick="saveSeats()">حفظ المقاعد</button>
 </div>
 
@@ -84,9 +97,8 @@ button:hover {
 <button onclick="deleteAllStudents()">حذف جميع الطلاب</button>
 </div>
 
-<h2>تنفيذ القبول</h2>
+<h2>النتائج</h2>
 <div class="section">
-<button onclick="runAcceptance()">تنفيذ القبول</button>
 <button onclick="deleteResults()">حذف النتائج</button>
 </div>
 
@@ -122,11 +134,14 @@ const specialties = [
 // تحميل جدول المقاعد
 function loadSeats() {
     const table = document.getElementById("seatsTable");
+
     specialties.forEach(spec => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${spec}</td>
-            <td><input id="seat-${spec}" type="number" min="0"></td>
+            <td><input id="seat-${spec}-عام" type="number" min="0"></td>
+            <td><input id="seat-${spec}-موازي" type="number" min="0"></td>
+            <td><input id="seat-${spec}-صحة" type="number" min="0"></td>
         `;
         table.appendChild(row);
     });
@@ -134,7 +149,9 @@ function loadSeats() {
     db.ref("seats").once("value", snap => {
         const data = snap.val() || {};
         Object.keys(data).forEach(spec => {
-            document.getElementById("seat-" + spec).value = data[spec];
+            document.getElementById(`seat-${spec}-عام`).value = data[spec]?.عام || 0;
+            document.getElementById(`seat-${spec}-موازي`).value = data[spec]?.موازي || 0;
+            document.getElementById(`seat-${spec}-صحة`).value = data[spec]?.صحة || 0;
         });
     });
 }
@@ -142,9 +159,15 @@ function loadSeats() {
 // حفظ المقاعد
 function saveSeats() {
     const seats = {};
+
     specialties.forEach(spec => {
-        seats[spec] = Number(document.getElementById("seat-" + spec).value || 0);
+        seats[spec] = {
+            عام: Number(document.getElementById(`seat-${spec}-عام`).value || 0),
+            موازي: Number(document.getElementById(`seat-${spec}-موازي`).value || 0),
+            صحة: Number(document.getElementById(`seat-${spec}-صحة`).value || 0)
+        };
     });
+
     db.ref("seats").set(seats);
     alert("تم حفظ المقاعد");
 }
@@ -192,16 +215,20 @@ function deleteResults() {
     alert("تم حذف النتائج");
 }
 
-// تنفيذ القبول
+// تنفيذ القبول التلقائي
 async function runAcceptance() {
     const seatsSnap = await db.ref("seats").once("value");
-    const seats = seatsSnap.val() || {};
+    const seatsOriginal = seatsSnap.val() || {};
+
+    // نعمل نسخة جديدة من المقاعد حتى نعيد توزيعها من الصفر
+    const seats = JSON.parse(JSON.stringify(seatsOriginal));
 
     const studentsSnap = await db.ref("students").once("value");
     const students = [];
 
     studentsSnap.forEach(s => students.push(s.val()));
 
+    // ترتيب الطلاب حسب المعدل
     students.sort((a,b) => b.score - a.score);
 
     const results = {};
@@ -215,8 +242,13 @@ async function runAcceptance() {
             const spec = st.choices[i].specialty;
             const type = st.choices[i].type;
 
-            if (seats[spec] > 0) {
-                seats[spec]--;
+            let seatKey = "";
+            if (type === "دراسات عام") seatKey = "عام";
+            if (type === "دراسات موازي") seatKey = "موازي";
+            if (type === "وزارة الصحة") seatKey = "صحة";
+
+            if (seats[spec][seatKey] > 0) {
+                seats[spec][seatKey]--;
                 results[st.exam] = {
                     accepted: true,
                     specialty: spec,
@@ -238,10 +270,13 @@ async function runAcceptance() {
     });
 
     await db.ref("results").set(results);
-    await db.ref("seats").set(seats);
-
-    alert("تم تنفيذ القبول");
+    await db.ref("seats_used").set(seats);
 }
+
+// تشغيل القبول تلقائيًا عند أي تغيير
+db.ref("students").on("value", () => {
+    runAcceptance();
+});
 
 loadSeats();
 loadStudents();
