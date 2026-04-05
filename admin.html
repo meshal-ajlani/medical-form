@@ -11,7 +11,6 @@
     .wrap{max-width:1200px;margin:18px auto}
     .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06);margin-bottom:14px}
     h1{color:var(--accent);margin:0 0 8px}
-    h3{margin:0 0 8px;color:#0b5f73}
     .small{font-size:13px;color:var(--muted)}
     .spec-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
     .spec-row .label{flex:1;font-weight:600}
@@ -23,22 +22,20 @@
     table{width:100%;border-collapse:collapse}
     th,td{padding:8px;border-bottom:1px solid #eef5f7;text-align:left;font-size:14px}
     .muted{color:var(--muted)}
-    .badge{background:#eef9fb;padding:6px 8px;border-radius:8px;color:var(--muted);font-weight:600}
     .row{display:flex;gap:12px;flex-wrap:wrap}
     .col{flex:1 1 300px;min-width:220px}
-    .center{display:flex;align-items:center;gap:8px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>لوحة الإدارة - مفاضلة الطب البشري</h1>
-      <p class="small">هذه الواجهة تعمل مباشرة مع Realtime Database. لا حاجة لتسجيل دخول الآن. كن حذراً عند الضغط على حذف الكل.</p>
+      <p class="small">هذا الملف يتصل مباشرة بـ Realtime Database لمشروع Medical-Form2025.</p>
     </div>
 
     <div class="card">
       <h3>المقاعد حسب التخصص والنوع</h3>
-      <div class="small">اضبط عدد المقاعد لكل تخصص ولكل نوع ثم اضغط حفظ.</div>
+      <div class="small">اضبط المقاعد ثم اضغط حفظ أو شغّل المفاضلة.</div>
       <div id="seatsContainer" class="list" style="margin-top:12px"></div>
 
       <div class="controls">
@@ -76,21 +73,32 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, child, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // ضع إعدادات Firebase الخاصة بمشروعك هنا
+    // إعدادات Firebase لمشروعك Medical-Form2025
     const firebaseConfig = {
-      apiKey: "API_KEY",
-      authDomain: "PROJECT.firebaseapp.com",
-      databaseURL: "https://PROJECT-default-rtdb.firebaseio.com",
-      projectId: "PROJECT",
-      appId: "APP_ID"
+      apiKey: "AIzaSyBKjw37YQewKBNh_Zl9Mnh1gvy37HZiNF0",
+      authDomain: "medical-form2025.firebaseapp.com",
+      databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "medical-form2025",
+      storageBucket: "medical-form2025.appspot.com",
+      messagingSenderId: "1088878162837",
+      appId: "1:1088878162837:web:d3eea8339ec78cf420fc9c",
+      measurementId: "G-QP6PXM5E8P"
     };
 
+    // تهيئة Firebase ومرر databaseURL صراحة
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const db = getDatabase(app, "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app");
 
-    // قائمة التخصصات وأنواع المقاعد
+    // تحقق سريع من الاتصال واطبع النتيجة في Console
+    get(ref(db, '/')).then(snap => {
+      console.log('RTDB root loaded:', snap.exists() ? 'data exists' : 'empty');
+    }).catch(err => {
+      console.error('RTDB connection error:', err);
+    });
+
+    // التخصصات وأنواع المقاعد
     const specialties = [
       "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
       "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
@@ -137,7 +145,6 @@
         seatsContainer.appendChild(row);
       });
     }
-
     buildSeatsUI();
 
     // تحميل المقاعد من DB وعرضها
@@ -189,7 +196,6 @@
           const id = e.target.dataset.id;
           if (!confirm('هل تريد حذف هذا الطالب؟')) return;
           await remove(ref(db, `students/${id}`));
-          await loadStudents();
         });
       });
     }
@@ -206,17 +212,14 @@
 
     // تشغيل آلية المفاضلة
     runAlgoBtn.addEventListener('click', async ()=>{
-      // جلب المقاعد والطلاب
       const seatsSnap = await get(ref(db, 'seats'));
       const seats = seatsSnap.exists() ? seatsSnap.val() : {};
       const studentsSnap = await get(ref(db, 'students'));
       const studentsObj = studentsSnap.exists() ? studentsSnap.val() : {};
 
-      // تحويل الطلاب إلى مصفوفة وترتيب تنازلي حسب المعدل
       const students = Object.entries(studentsObj).map(([id, s])=> ({ id, ...s }))
         .sort((a,b)=> b.score - a.score);
 
-      // نسخة من المقاعد قابلة للتعديل
       const seatsLeft = {};
       specialties.forEach(s=>{
         seatsLeft[s] = {};
@@ -226,7 +229,6 @@
       const accepted = {};
       const rejected = {};
 
-      // لكل طالب حسب ترتيبه، جرب رغباته بالترتيب
       for (const stu of students){
         let assigned = null;
         let assignedType = null;
@@ -248,7 +250,6 @@
         }
       }
 
-      // حساب الحد الأدنى للمعدل لكل تخصص ولكل نوع
       const minScores = {};
       specialties.forEach(s=>{
         minScores[s] = {};
@@ -262,7 +263,6 @@
         });
       });
 
-      // حفظ النتائج في DB
       const resultsPayload = {
         generatedAt: Date.now(),
         seatsLeft,
@@ -271,9 +271,6 @@
         minScores
       };
       await set(ref(db, 'results'), resultsPayload);
-
-      // عرض النتائج
-      renderResults(resultsPayload);
       alert('انتهت عملية المفاضلة. النتائج محفوظة في /results');
     });
 
@@ -297,7 +294,6 @@
       acceptedList.innerHTML = acc.length ? acc.map(a=>`<div><strong>${escapeHtml(a.name)}</strong> — ${a.score} — ${escapeHtml(a.assigned)} (${escapeHtml(a.assignedType)})</div>`).join('') : '<div class="small muted">لا يوجد مقبولون</div>';
       rejectedList.innerHTML = rej.length ? rej.map(r=>`<div>${escapeHtml(r.name)} — ${r.score}</div>`).join('') : '<div class="small muted">لا يوجد مرفوضون</div>';
 
-      // جدول الحد الأدنى
       const minScores = data.minScores || {};
       let html = '<table><thead><tr><th>التخصص</th>';
       types.forEach(t=> html += `<th>${t}</th>`);
@@ -314,7 +310,7 @@
       minScoresTable.innerHTML = html;
     }
 
-    // مسمع تحميل/تحديث تلقائي للـ results و students و seats
+    // مراقبة التغييرات الحية
     onValue(ref(db, 'results'), snap => {
       if (snap.exists()) renderResults(snap.val());
       else renderResultsEmpty();
@@ -325,7 +321,6 @@
     });
     onValue(ref(db, 'seats'), snap => {
       const data = snap.exists() ? snap.val() : {};
-      // تحديث الحقول إن تغيرت من مكان آخر
       document.querySelectorAll('[data-spec]').forEach(inp=>{
         const s = inp.dataset.spec; const t = inp.dataset.type;
         inp.value = (data[s] && data[s][t] !== undefined) ? data[s][t] : inp.value;
@@ -345,7 +340,6 @@
     await loadStudents();
     await loadResults();
 
-    // دالة مساعدة للهروب من XSS عند عرض نصوص المستخدم
     function escapeHtml(text){
       if (text === undefined || text === null) return '';
       return String(text)
