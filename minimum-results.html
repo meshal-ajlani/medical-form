@@ -140,7 +140,7 @@
       const acceptedCount = {};
       Object.values(acceptedObj || {}).forEach(a => {
         const spec = a.assigned;
-        const typ = a.assignedType === 'وزارة' ? 'الصحة' : a.assignedType; // normalize if results used "وزارة"
+        const typ = a.assignedType === 'الصحة' ? 'الصحة' : a.assignedType; // normalize if results used "وزارة"
         if (!spec || !typ) return;
         acceptedCount[spec] = acceptedCount[spec] || { 'عام':0, 'موازي':0, 'الصحة':0 };
         acceptedCount[spec][typ] = (acceptedCount[spec][typ] || 0) + 1;
@@ -156,7 +156,7 @@
         const seatRow = seatsObj && seatsObj[spec] ? seatsObj[spec] : {};
         ['عام','موازي','وزارة'].forEach(t => {
           const total = Number(seatRow[t] || 0);
-          const mappedType = (t === 'وزارة') ? 'الصحة' : t;
+          const mappedType = (t === 'الصحة') ? 'الصحة' : t;
           const acc = (acceptedCount[spec] && acceptedCount[spec][mappedType]) ? acceptedCount[spec][mappedType] : 0;
           let left = total - acc;
           if (left < 0) left = 0;
@@ -166,7 +166,7 @@
           if (left === 0) {
             const ms = (minScoresFromResults && (minScoresFromResults[spec] || minScoresFromResults[spec]) ) ? (minScoresFromResults[spec] && (minScoresFromResults[spec][t] !== undefined ? minScoresFromResults[spec][t] : (minScoresFromResults[spec][mappedType] !== undefined ? minScoresFromResults[spec][mappedType] : null))) : null;
             // try both keys 'وزارة' and 'الصحة'
-            const msAlt = (minScoresFromResults && minScoresFromResults[spec]) ? (minScoresFromResults[spec]['وزارة'] ?? minScoresFromResults[spec]['الصحة'] ?? null) : null;
+            const msAlt = (minScoresFromResults && minScoresFromResults[spec]) ? (minScoresFromResults[spec]['الصحة'] ?? minScoresFromResults[spec]['الصحة'] ?? null) : null;
             table[spec][mappedType].min = ms !== null ? ms : msAlt;
           } else {
             table[spec][mappedType].min = null;
@@ -178,7 +178,7 @@
         const mins = {};
         Object.values(acceptedObj || {}).forEach(a => {
           const spec = a.assigned;
-          const typ = a.assignedType === 'وزارة' ? 'الصحة' : a.assignedType;
+          const typ = a.assignedType === 'الصحة' ? 'الصحة' : a.assignedType;
           const score = Number(a.score);
           if (!spec || !typ || isNaN(score)) return;
           mins[spec] = mins[spec] || { 'عام': null, 'موازي': null, 'الصحة': null };
