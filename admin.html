@@ -1,341 +1,348 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!doctype html>
+<html lang="ar">
 <head>
-<meta charset="UTF-8">
-<title>لوحة الإدارة</title>
-
-<style>
-    body {
-        font-family: "Cairo", sans-serif;
-        background: #f5f5f5;
-        margin: 0;
-        padding: 20px;
-    }
-    h1 {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    .section-title {
-        font-size: 22px;
-        margin: 25px 0 10px;
-        font-weight: bold;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        margin-bottom: 20px;
-    }
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-    }
-    th {
-        background: #007bff;
-        color: white;
-    }
-    input {
-        width: 70px;
-        padding: 5px;
-        text-align: center;
-    }
-    button {
-        padding: 8px 15px;
-        background: #007bff;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-    button:hover {
-        background: #0056b3;
-    }
-    .scroll-box {
-        max-height: 350px;
-        overflow-y: scroll;
-        border: 2px solid #ccc;
-        background: white;
-        margin-bottom: 20px;
-    }
-</style>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-<script>
-const firebaseConfig = {
-    apiKey: "AIzaSyD1p3vXx5p4Yp6qz0l4ZlqVvYqYp6qz0l4",
-    authDomain: "medical-form2025.firebaseapp.com",
-    databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "medical-form2025",
-    storageBucket: "medical-form2025.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-</script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لوحة الإدارة - مفاضلة الطب</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f7fbfc;--card:#fff;--accent:#0b6b8f;--danger:#d9534f;--muted:#6b7c86}
+    body{font-family:'Cairo',sans-serif;background:linear-gradient(180deg,#eef8fb,#f7fbfc);margin:0;padding:20px;color:#123}
+    .wrap{max-width:1100px;margin:20px auto}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(10,30,40,0.06);margin-bottom:16px}
+    h2{color:var(--accent);margin:0 0 10px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    input,select,button{padding:8px;border-radius:8px;border:1px solid #e0eef2}
+    button{background:var(--accent);color:#fff;border:none;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:8px;border-bottom:1px solid #eef5f7;text-align:left;font-size:14px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .danger{background:var(--danger);color:#fff}
+    .small{font-size:13px;color:var(--muted)}
+    .flex-between{display:flex;justify-content:space-between;align-items:center}
+    .list{max-height:320px;overflow:auto;border:1px solid #eef5f7;padding:8px;border-radius:8px}
+    .badge{background:#eef9fb;padding:6px 8px;border-radius:8px;color:var(--muted);font-weight:600}
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div class="card">
+      <div class="flex-between">
+        <h2>لوحة الإدارة</h2>
+        <div>
+          <span class="small">حالة: </span><span id="authState" class="badge">غير متصل</span>
+        </div>
+      </div>
 
-<h1>لوحة الإدارة</h1>
+      <div style="margin-top:10px" class="row">
+        <div>
+          <label class="small">البريد الإلكتروني (أدمن)</label>
+          <input id="adminEmail" placeholder="email@example.com" />
+        </div>
+        <div>
+          <label class="small">كلمة المرور</label>
+          <input id="adminPass" type="password" placeholder="كلمة المرور" />
+        </div>
+        <div style="align-self:end">
+          <button id="loginBtn">تسجيل دخول</button>
+          <button id="logoutBtn" style="display:none;background:#777">تسجيل خروج</button>
+        </div>
+      </div>
+      <div class="small" style="margin-top:8px">ملاحظة: لتجربة سريعة يمكنك إنشاء مستخدم أدمن في Firebase Authentication ثم إضافة الـ uid الخاص به يدوياً في المسار <code>/admins/{uid}: true</code> في Realtime Database.</div>
+    </div>
 
-<!-- ===================== جدول المقاعد ===================== -->
-<div class="section-title">تعديل المقاعد</div>
+    <div class="card">
+      <h3>تحديد عدد المقاعد لكل تخصص</h3>
+      <div class="small">اضبط عدد المقاعد ثم اضغط حفظ. التغييرات متاحة فوراً.</div>
+      <div id="seatsContainer" class="list" style="margin-top:10px"></div>
+      <div style="margin-top:10px">
+        <button id="saveSeatsBtn">حفظ المقاعد</button>
+        <button id="runAlgoBtn" style="margin-left:8px">تشغيل آلية المفاضلة</button>
+        <button id="clearAllBtn" class="danger" style="margin-left:8px">حذف جميع الطلاب</button>
+      </div>
+    </div>
 
-<div class="scroll-box">
-<table id="seatsTable">
-    <tr>
-        <th>التخصص</th>
-        <th>عام</th>
-        <th>موازي</th>
-        <th>صحة</th>
-        <th>حفظ</th>
-    </tr>
-</table>
-</div>
+    <div class="card">
+      <h3>النتائج</h3>
+      <div class="row" style="gap:20px">
+        <div style="flex:1">
+          <h4>المقبولون</h4>
+          <div id="acceptedList" class="list"></div>
+        </div>
+        <div style="flex:1">
+          <h4>المرفوضون</h4>
+          <div id="rejectedList" class="list"></div>
+        </div>
+      </div>
+    </div>
 
-<button onclick="saveAllSeats()">حفظ جميع المقاعد</button>
+    <div class="card">
+      <h3>قائمة الطلاب (قابلة للحذف)</h3>
+      <div id="studentsTable"></div>
+    </div>
+  </div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-<!-- ===================== جدول المقبولين ===================== -->
-<div class="section-title">المقبولون</div>
-<div class="scroll-box">
-<table id="acceptedTable">
-    <tr>
-        <th>الاسم</th>
-        <th>العلامة</th>
-        <th>الاختصاص</th>
-        <th>نوع التسجيل</th>
-    </tr>
-</table>
-</div>
+    const firebaseConfig = {
+      apiKey: "API_KEY",
+      authDomain: "PROJECT.firebaseapp.com",
+      databaseURL: "https://PROJECT-default-rtdb.firebaseio.com",
+      projectId: "PROJECT",
+      appId: "APP_ID"
+    };
 
-<!-- ===================== جدول المرفوضين ===================== -->
-<div class="section-title">المرفوضون</div>
-<div class="scroll-box">
-<table id="rejectedTable">
-    <tr>
-        <th>الاسم</th>
-        <th>العلامة</th>
-        <th>الحالة</th>
-    </tr>
-</table>
-</div>
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-<!-- ===================== جدول الحد الأدنى ===================== -->
-<div class="section-title">الحد الأدنى لكل اختصاص</div>
-<div class="scroll-box">
-<table id="minTable">
-    <tr>
-        <th>الاختصاص</th>
-        <th>الحد الأدنى</th>
-    </tr>
-</table>
-</div>
+    // نفس قائمة التخصصات
+    const specialties = [
+      "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية","الداخلية العصبية",
+      "الداخلية الدموية","الداخلية الكلية","الداخلية الرثوية","الداخلية الخمجية","الطب النفسي","العينية",
+      "الأذنية","الجلدية","طب الأطفال","النسائية والتوليد","الجراحة العامة","الجراحة العظمية",
+      "الجراحة البولية","الجراحة الصدرية","الجراحة العصبية","الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية",
+      "جراحة الأطفال","الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
+      "الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
+    ];
 
+    // عناصر DOM
+    const seatsContainer = document.getElementById('seatsContainer');
+    const saveSeatsBtn = document.getElementById('saveSeatsBtn');
+    const runAlgoBtn = document.getElementById('runAlgoBtn');
+    const acceptedList = document.getElementById('acceptedList');
+    const rejectedList = document.getElementById('rejectedList');
+    const studentsTable = document.getElementById('studentsTable');
+    const clearAllBtn = document.getElementById('clearAllBtn');
 
-<script>
+    const adminEmail = document.getElementById('adminEmail');
+    const adminPass = document.getElementById('adminPass');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authState = document.getElementById('authState');
 
-// ================= تحميل التخصصات =================
-function loadSpecialties() {
-    db.ref("/").once("value", snapshot => {
-        const data = snapshot.val();
-        const table = document.getElementById("seatsTable");
+    // أنشئ حقول إدخال للمقاعد
+    specialties.forEach(s=>{
+      const wrapper = document.createElement('div');
+      wrapper.style.display = 'flex';
+      wrapper.style.justifyContent = 'space-between';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.marginBottom = '6px';
 
-        for (let key in data) {
-            if (
-                typeof data[key] === "object" &&
-                data[key].hasOwnProperty("عام")
-            ) {
-                const row = document.createElement("tr");
+      const label = document.createElement('div');
+      label.textContent = s;
+      label.style.flex = '1';
 
-                row.innerHTML = `
-                    <td>${key}</td>
-                    <td><input id="${key}-عام" type="number" value="${data[key].عام}"></td>
-                    <td><input id="${key}-موازي" type="number" value="${data[key].موازي}"></td>
-                    <td><input id="${key}-صحة" type="number" value="${data[key].صحة}"></td>
-                    <td><button onclick="saveSeat('${key}')">حفظ</button></td>
-                `;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.value = '0';
+      input.style.width = '90px';
+      input.dataset.spec = s;
 
-                table.appendChild(row);
-            }
-        }
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      seatsContainer.appendChild(wrapper);
     });
-}
 
-
-// ================= حفظ تخصص واحد =================
-function saveSeat(name) {
-    const a = Number(document.getElementById(`${name}-عام`).value);
-    const m = Number(document.getElementById(`${name}-موازي`).value);
-    const s = Number(document.getElementById(`${name}-صحة`).value);
-
-    db.ref(name).set({
-        "عام": a,
-        "موازي": m,
-        "صحة": s
-    }).then(() => runAcceptance());
-}
-
-
-// ================= حفظ جميع التخصصات =================
-function saveAllSeats() {
-    db.ref("/").once("value", snapshot => {
-        const data = snapshot.val();
-        let updates = {};
-
-        for (let key in data) {
-            if (typeof data[key] === "object" && data[key].hasOwnProperty("عام")) {
-                updates[key] = {
-                    "عام": Number(document.getElementById(`${key}-عام`).value),
-                    "موازي": Number(document.getElementById(`${key}-موازي`).value),
-                    "صحة": Number(document.getElementById(`${key}-صحة`).value)
-                };
-            }
-        }
-
-        db.ref("/").update(updates).then(() => runAcceptance());
+    // تحميل المقاعد من DB
+    const seatsRef = ref(db, 'seats');
+    onValue(seatsRef, (snap)=>{
+      const data = snap.val() || {};
+      document.querySelectorAll('[data-spec]').forEach(inp=>{
+        inp.value = data[inp.dataset.spec] ?? 0;
+      });
     });
-}
 
+    saveSeatsBtn.addEventListener('click', async ()=>{
+      // تحقق صلاحية الأدمن محلياً: نتحقق من وجود uid في /admins
+      const user = auth.currentUser;
+      if (!user){
+        alert('يجب تسجيل الدخول كأدمن لحفظ المقاعد.');
+        return;
+      }
+      const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
+      if (!adminSnap.exists()){
+        alert('ليس لديك صلاحية أدمن.');
+        return;
+      }
 
-// ================= القبول التلقائي =================
-function runAcceptance() {
-    db.ref("/students").once("value", snap => {
-        const students = snap.val() || {};
-        let arr = [];
+      const updates = {};
+      document.querySelectorAll('[data-spec]').forEach(inp=>{
+        updates[inp.dataset.spec] = Number(inp.value) || 0;
+      });
+      await set(seatsRef, updates);
+      alert('تم حفظ المقاعد.');
+    });
 
-        if (!students || Object.keys(students).length === 0) {
-            db.ref("results").set({});
-            db.ref("min_scores").set({});
-            renderResults({}, {});
-            return;
-        }
+    // تحميل الطلاب وعرضهم
+    const studentsRef = ref(db, 'students');
+    onValue(studentsRef, (snap)=>{
+      const data = snap.val() || {};
+      renderStudentsTable(data);
+    });
 
-        for (let id in students) {
-            arr.push({
-                id: id,
-                name: students[id].name,
-                score: students[id].score,
-                type: students[id].type,
-                choices: students[id].choices
-            });
-        }
-
-        arr.sort((a, b) => b.score - a.score);
-
-        db.ref("/").once("value", snapshot => {
-            const data = snapshot.val();
-            let seats = {};
-            let used = {};
-            let results = {};
-            let minScores = {};
-
-            for (let key in data) {
-                if (typeof data[key] === "object" && data[key].hasOwnProperty("عام")) {
-                    seats[key] = data[key];
-                    used[key] = { "عام": 0, "موازي": 0, "صحة": 0 };
-                }
-            }
-
-            arr.forEach(st => {
-                for (let choice of st.choices) {
-                    if (!seats[choice]) continue;
-
-                    let type = st.type;
-                    if (used[choice][type] < seats[choice][type]) {
-                        used[choice][type]++;
-                        results[st.id] = {
-                            name: st.name,
-                            score: st.score,
-                            accepted: choice,
-                            type: type
-                        };
-
-                        if (!minScores[choice] || st.score < minScores[choice]) {
-                            minScores[choice] = st.score;
-                        }
-
-                        return;
-                    }
-                }
-
-                results[st.id] = {
-                    name: st.name,
-                    score: st.score,
-                    accepted: "مرفوض",
-                    type: st.type
-                };
-            });
-
-            db.ref("results").set(results);
-            db.ref("min_scores").set(minScores);
-
-            renderResults(results, minScores);
+    function renderStudentsTable(data){
+      const rows = Object.entries(data).map(([key, s])=>{
+        return `<tr>
+          <td>${s.name}</td>
+          <td>${s.examNo}</td>
+          <td>${s.score}</td>
+          <td>${s.type}</td>
+          <td>${(s.prefs||[]).join(' | ')}</td>
+          <td><button data-id="${key}" class="delBtn">حذف</button></td>
+        </tr>`;
+      }).join('');
+      studentsTable.innerHTML = `<table><thead><tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>النوع</th><th>الرغبات</th><th>إجراء</th></tr></thead><tbody>${rows}</tbody></table>`;
+      // أضف مستمعي حذف
+      document.querySelectorAll('.delBtn').forEach(b=>{
+        b.addEventListener('click', async (e)=>{
+          const id = e.target.dataset.id;
+          if (!confirm('حذف هذا الطالب؟')) return;
+          await remove(child(ref(db), `students/${id}`));
         });
+      });
+    }
+
+    // حذف جميع الطلاب
+    clearAllBtn.addEventListener('click', async ()=>{
+      const user = auth.currentUser;
+      if (!user){
+        alert('يجب تسجيل الدخول كأدمن لحذف الطلاب.');
+        return;
+      }
+      const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
+      if (!adminSnap.exists()){
+        alert('ليس لديك صلاحية أدمن.');
+        return;
+      }
+      if (!confirm('هل تريد حذف جميع سجلات الطلاب؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+      await remove(ref(db, 'students'));
+      // مسح نتائج سابقة
+      await remove(ref(db, 'results'));
+      alert('تم حذف جميع الطلاب.');
     });
-}
 
+    // تشغيل آلية المفاضلة
+    runAlgoBtn.addEventListener('click', async ()=>{
+      const user = auth.currentUser;
+      if (!user){
+        alert('يجب تسجيل الدخول كأدمن لتشغيل الآلية.');
+        return;
+      }
+      const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
+      if (!adminSnap.exists()){
+        alert('ليس لديك صلاحية أدمن.');
+        return;
+      }
 
-// ================= عرض النتائج =================
-function renderResults(results, minScores) {
-    const acceptedTable = document.getElementById("acceptedTable");
-    const rejectedTable = document.getElementById("rejectedTable");
-    const minTable = document.getElementById("minTable");
+      // جلب المقاعد والطلاب
+      const seatsSnap = await get(seatsRef);
+      const seats = seatsSnap.val() || {};
+      const studentsSnap = await get(studentsRef);
+      const studentsObj = studentsSnap.val() || {};
 
-    acceptedTable.innerHTML = `
-        <tr><th>الاسم</th><th>العلامة</th><th>الاختصاص</th><th>نوع التسجيل</th></tr>
-    `;
-    rejectedTable.innerHTML = `
-        <tr><th>الاسم</th><th>العلامة</th><th>الحالة</th></tr>
-    `;
-    minTable.innerHTML = `
-        <tr><th>الاختصاص</th><th>الحد الأدنى</th></tr>
-    `;
+      // تحويل الطلاب إلى مصفوفة وترتيب تنازلي حسب المعدل
+      const students = Object.entries(studentsObj).map(([id, s])=>{
+        return { id, ...s };
+      }).sort((a,b)=> b.score - a.score);
 
-    for (let id in results) {
-        let r = results[id];
+      // نسخة من المقاعد قابلة للتعديل
+      const seatsLeft = {};
+      specialties.forEach(s=> seatsLeft[s] = Number(seats[s] || 0));
 
-        if (r.accepted !== "مرفوض") {
-            acceptedTable.innerHTML += `
-                <tr>
-                    <td>${r.name}</td>
-                    <td>${r.score}</td>
-                    <td>${r.accepted}</td>
-                    <td>${r.type}</td>
-                </tr>
-            `;
-        } else {
-            rejectedTable.innerHTML += `
-                <tr>
-                    <td>${r.name}</td>
-                    <td>${r.score}</td>
-                    <td>مرفوض</td>
-                </tr>
-            `;
+      const accepted = [];
+      const rejected = [];
+
+      // آلية القبول: لكل طالب حسب ترتيبه، جرب رغباته من الأولى للعاشرة
+      for (const stu of students){
+        let assigned = null;
+        for (const pref of (stu.prefs || [])){
+          if (!pref) continue;
+          if ((seatsLeft[pref] || 0) > 0){
+            seatsLeft[pref] -= 1;
+            assigned = pref;
+            break;
+          }
         }
+        if (assigned){
+          accepted.push({...stu, assigned});
+        } else {
+          rejected.push(stu);
+        }
+      }
+
+      // خزّن النتائج في DB تحت /results
+      const resultsRef = ref(db, 'results');
+      const payload = {
+        generatedAt: Date.now(),
+        seatsLeft,
+        accepted: accepted.reduce((acc, s)=>{ acc[s.id] = s; return acc; }, {}),
+        rejected: rejected.reduce((acc, s)=>{ acc[s.id] = s; return acc; }, {})
+      };
+      await set(resultsRef, payload);
+
+      // عرض النتائج في الواجهة
+      renderResults(payload);
+      alert('انتهت عملية المفاضلة. النتائج محفوظة في /results');
+    });
+
+    // عرض النتائج إن وجدت
+    const resultsRef = ref(db, 'results');
+    onValue(resultsRef, (snap)=>{
+      const data = snap.val();
+      if (data) renderResults(data);
+    });
+
+    function renderResults(data){
+      acceptedList.innerHTML = '';
+      rejectedList.innerHTML = '';
+      const acc = Object.values(data.accepted || {});
+      const rej = Object.values(data.rejected || {});
+      if (acc.length===0) acceptedList.innerHTML = '<div class="small">لا يوجد مقبولون بعد</div>';
+      else acceptedList.innerHTML = acc.map(a=>`<div><strong>${a.name}</strong> — ${a.score} — مقبول في: ${a.assigned}</div>`).join('');
+      if (rej.length===0) rejectedList.innerHTML = '<div class="small">لا يوجد مرفوضون</div>';
+      else rejectedList.innerHTML = rej.map(r=>`<div>${r.name} — ${r.score}</div>`).join('');
     }
 
-    for (let sp in minScores) {
-        minTable.innerHTML += `
-            <tr>
-                <td>${sp}</td>
-                <td>${minScores[sp]}</td>
-            </tr>
-        `;
-    }
-}
+    // تسجيل دخول/خروج (Firebase Auth)
+    loginBtn.addEventListener('click', async ()=>{
+      const email = adminEmail.value.trim();
+      const pass = adminPass.value;
+      if (!email || !pass) { alert('أدخل البريد وكلمة المرور'); return; }
+      try{
+        await signInWithEmailAndPassword(auth, email, pass);
+      }catch(err){
+        alert('فشل تسجيل الدخول: ' + err.message);
+      }
+    });
+    logoutBtn.addEventListener('click', async ()=> {
+      await signOut(auth);
+    });
 
+    onAuthStateChanged(auth, async (user)=>{
+      if (user){
+        authState.textContent = 'متصل';
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        // تحقق من وجود uid في /admins
+        const adminSnap = await get(child(ref(db), `admins/${user.uid}`));
+        if (!adminSnap.exists()){
+          authState.textContent = 'متصل (ليس أدمن)';
+          alert('تم تسجيل الدخول لكن هذا المستخدم ليس في قائمة الأدمن. أضف uid في /admins ليحصل على صلاحيات.');
+        } else {
+          authState.textContent = 'متصل (أدمن)';
+        }
+      } else {
+        authState.textContent = 'غير متصل';
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+      }
+    });
 
-// تشغيل الصفحة
-loadSpecialties();
-runAcceptance();
-
-</script>
-
+  </script>
 </body>
 </html>
