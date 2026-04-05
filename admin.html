@@ -462,20 +462,34 @@ async function calculateMinScores(results) {
 /* تنفيذ القبول */
 async function runAcceptance() {
 
+    console.clear();
+    console.log("🚀 بدء عملية القبول…");
+
+    // تحميل المقاعد
     const seatsSnap = await db.ref("seats").once("value");
     const seats = seatsSnap.val() || {};
 
+    // تحميل الطلاب
     const studentsSnap = await db.ref("students").once("value");
     const students = [];
-
     studentsSnap.forEach(s => students.push(s.val()));
 
-    // ترتيب الطلاب حسب المعدل
+    console.log("📌 عدد الطلاب:", students.length);
+
+    // 🔥 ترتيب الطلاب حسب المعدل
     students.sort((a, b) => Number(b.score) - Number(a.score));
+
+    console.log("📌 ترتيب الطلاب بعد الفرز:");
+    students.forEach(s => {
+        console.log(`- ${s.name} | معدل: ${s.score}`);
+    });
 
     const results = {};
 
+    // 🔥 توزيع المقاعد
     for (const st of students) {
+
+        console.log(`\n👤 معالجة الطالب: ${st.name} | معدل: ${st.score}`);
 
         let accepted = false;
 
@@ -487,8 +501,6 @@ async function runAcceptance() {
             const spec = choice.specialty;
             const type = choice.type;
 
-            if (!spec || !type) continue;
-
             let seatKey = "";
             if (type.includes("عام")) seatKey = "عام";
             if (type.includes("موازي")) seatKey = "موازي";
@@ -497,9 +509,13 @@ async function runAcceptance() {
             if (!seats[spec]) continue;
             if (seats[spec][seatKey] === undefined) continue;
 
+            console.log(`➡ فحص الرغبة ${i}: ${spec} (${seatKey}) | المقاعد المتبقية: ${seats[spec][seatKey]}`);
+
             if (Number(seats[spec][seatKey]) > 0) {
 
                 seats[spec][seatKey]--;
+
+                console.log(`✅ تم قبول الطالب في ${spec} (${seatKey})`);
 
                 results[st.exam] = {
                     accepted: true,
@@ -517,6 +533,8 @@ async function runAcceptance() {
         }
 
         if (!accepted) {
+            console.log(`❌ الطالب ${st.name} لم يُقبل في أي رغبة`);
+
             results[st.exam] = {
                 accepted: false,
                 score: Number(st.score),
@@ -531,16 +549,5 @@ async function runAcceptance() {
 
     await calculateMinScores(results);
 
-    alert("تم تحديث النتائج بنجاح");
+    alert("تم تحديث النتائج بنجاح — راجع Console لمعرفة التفاصيل");
 }
-
-/* تحميل كل شيء */
-loadSeats();
-loadStudents();
-loadAccepted();
-loadRejected();
-loadMinScores();
-</script>
-
-</body>
-</html>
