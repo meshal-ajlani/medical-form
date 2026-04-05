@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>نظام القبول – نسخة التشخيص</title>
+<title>نظام القبول – نسخة مبسطة</title>
 <style>
 body { font-family: Tahoma; background: #f4f7fb; margin: 0; padding: 0; }
 .container { max-width: 1200px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
@@ -11,11 +11,17 @@ table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
 th { background: #e8f0fe; }
 .scroll-box { max-height: 350px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
+button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 5px; }
+button:hover { background: #1d4ed8; }
 </style>
 </head>
 <body>
 
 <div class="container">
+
+<h2>إدارة النظام</h2>
+<button onclick="deleteAllStudents()">حذف جميع الطلاب</button>
+<button onclick="deleteResults()">حذف النتائج</button>
 
 <h2>المقاعد</h2>
 <div class="scroll-box">
@@ -39,6 +45,7 @@ th { background: #e8f0fe; }
     <th>التخصص</th>
     <th>نوع المقعد</th>
     <th>الرغبة</th>
+    <th>حذف</th>
 </tr>
 </table>
 </div>
@@ -75,7 +82,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// قائمة التخصصات
+// التخصصات
 const specialties = [
 "الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية",
 "الداخلية العصبية","الداخلية الدموية","الداخلية الكلوية","الداخلية الرثوية","الداخلية الخمجية",
@@ -93,6 +100,28 @@ function typeMap(type) {
     if (type.includes("موازي")) return "موازي";
     if (type.includes("صحة")) return "صحة";
     return null;
+}
+
+// حذف طالب واحد
+function deleteStudent(exam) {
+    db.ref("students/" + exam).remove();
+    db.ref("results/" + exam).remove();
+}
+
+// حذف جميع الطلاب
+function deleteAllStudents() {
+    if (confirm("هل أنت متأكد؟")) {
+        db.ref("students").remove();
+        db.ref("results").remove();
+        db.ref("min_scores").remove();
+    }
+}
+
+// حذف النتائج فقط
+function deleteResults() {
+    db.ref("results").remove();
+    db.ref("min_scores").remove();
+    alert("تم حذف النتائج");
 }
 
 // تحميل المقاعد
@@ -120,7 +149,7 @@ function loadSeats() {
     });
 }
 
-// دالة القبول الجديدة (نسخة التشخيص)
+// دالة القبول الجديدة
 async function runAcceptance() {
 
     console.clear();
@@ -133,15 +162,8 @@ async function runAcceptance() {
     const students = [];
     studentsSnap.forEach(s => students.push(s.val()));
 
-    console.log("📌 الطلاب:", students);
-
-    // تحويل المعدل إلى رقم
     students.forEach(s => s.score = Number(s.score));
-
-    // ترتيب
     students.sort((a, b) => b.score - a.score);
-
-    console.log("📌 بعد الترتيب:", students);
 
     const results = {};
     const minScores = {};
@@ -151,8 +173,6 @@ async function runAcceptance() {
         const examKey = String(st.exam);
         let assigned = false;
 
-        console.log(`\n👤 الطالب: ${st.name} (${st.score})`);
-
         for (let i = 1; i <= 10; i++) {
 
             const choice = st.choices?.[i];
@@ -161,8 +181,6 @@ async function runAcceptance() {
             const spec = choice.specialty;
             const type = choice.type;
             const seatKey = typeMap(type);
-
-            console.log(`➡ فحص الرغبة ${i}:`, choice);
 
             if (!spec || !seatKey) continue;
             if (!seats[spec]) continue;
@@ -189,14 +207,12 @@ async function runAcceptance() {
                 if (currentMin === "—" || st.score < currentMin)
                     minScores[spec][seatKey] = st.score;
 
-                console.log(`✅ قبول في ${spec} (${seatKey})`);
                 assigned = true;
                 break;
             }
         }
 
         if (!assigned) {
-            console.log(`❌ لم يُقبل`);
             results[examKey] = {
                 accepted: false,
                 name: st.name,
@@ -211,7 +227,6 @@ async function runAcceptance() {
     await db.ref("seats_used").set(seats);
 
     console.log("📌 النتائج النهائية:", results);
-    alert("تم تحديث النتائج – راجع Console");
 }
 
 // تحميل النتائج
@@ -219,7 +234,7 @@ function loadResults() {
     db.ref("results").on("value", snap => {
         const table = document.getElementById("resultsTable");
         table.innerHTML = `
-            <tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>التخصص</th><th>نوع المقعد</th><th>الرغبة</th></tr>
+            <tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>التخصص</th><th>نوع المقعد</th><th>الرغبة</th><th>حذف</th></tr>
         `;
 
         snap.forEach(s => {
@@ -233,6 +248,7 @@ function loadResults() {
                 <td>${r.specialty}</td>
                 <td>${r.type}</td>
                 <td>${r.choiceNumber}</td>
+                <td><button onclick="deleteStudent('${r.exam}')">حذف</button></td>
             `;
             table.appendChild(row);
         });
@@ -261,7 +277,7 @@ function loadMin() {
     });
 }
 
-// تشغيل تلقائي عند فتح الصفحة
+// تشغيل تلقائي
 loadSeats();
 runAcceptance();
 loadResults();
