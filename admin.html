@@ -11,7 +11,7 @@ body {
     padding: 20px;
 }
 .container {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: auto;
     background: #fff;
     padding: 25px;
@@ -74,17 +74,33 @@ input {
     <!-- مربع البحث -->
     <input id="searchBox" type="text" placeholder="ابحث عن طالب بالاسم أو الرقم" oninput="searchStudents()">
 
-    <div class="section-title">المقبولون</div>
-    <table id="acceptedTable">
+    <!-- جدول المقاعد (كما كان تمامًا) -->
+    <div class="section-title">تعديل المقاعد</div>
+    <table id="seatsTable"></table>
+    <button onclick="saveSeats()">حفظ المقاعد</button>
+
+    <!-- الحد الأدنى -->
+    <div class="section-title">الحد الأدنى</div>
+    <table id="minTable">
         <tr>
+            <th>التخصص</th>
+            <th>الحد الأدنى</th>
+        </tr>
+    </table>
+
+    <!-- المقبولون حسب كل تخصص -->
+    <div class="section-title">المقبولون حسب كل تخصص</div>
+    <table id="acceptedBySpec">
+        <tr>
+            <th>التخصص</th>
             <th>الاسم</th>
             <th>الرقم الامتحاني</th>
             <th>المعدل</th>
-            <th>الاختصاص</th>
             <th>نوع المقعد</th>
         </tr>
     </table>
 
+    <!-- غير المقبولين -->
     <div class="section-title">غير المقبولين</div>
     <table id="rejectedTable">
         <tr>
@@ -94,6 +110,19 @@ input {
             <th>سبب الرفض</th>
         </tr>
     </table>
+
+    <!-- الجدول الشامل -->
+    <div class="section-title">الجدول الشامل</div>
+    <table id="finalTable">
+        <tr>
+            <th>الاسم</th>
+            <th>الرقم الامتحاني</th>
+            <th>المعدل</th>
+            <th>التخصص</th>
+            <th>نوع المقعد</th>
+        </tr>
+    </table>
+
 </div>
 
 <script>
@@ -146,19 +175,46 @@ function runDistribution() {
         }
     });
 
-    fillAccepted(accepted);
+    fillAcceptedBySpec(accepted);
+    fillFinal(accepted);
     fillRejected(rejected);
 }
 
-// تعبئة جدول المقبولين
-function fillAccepted(list) {
-    const table = document.getElementById("acceptedTable");
+// المقبولون حسب كل تخصص
+function fillAcceptedBySpec(list) {
+    const table = document.getElementById("acceptedBySpec");
+    table.innerHTML = `
+        <tr>
+            <th>التخصص</th>
+            <th>الاسم</th>
+            <th>الرقم الامتحاني</th>
+            <th>المعدل</th>
+            <th>نوع المقعد</th>
+        </tr>
+    `;
+
+    list.forEach(s => {
+        table.innerHTML += `
+            <tr>
+                <td>${s.specialty}</td>
+                <td>${s.name}</td>
+                <td>${s.exam}</td>
+                <td>${s.grade}</td>
+                <td>${s.seatType}</td>
+            </tr>
+        `;
+    });
+}
+
+// الجدول الشامل
+function fillFinal(list) {
+    const table = document.getElementById("finalTable");
     table.innerHTML = `
         <tr>
             <th>الاسم</th>
             <th>الرقم الامتحاني</th>
             <th>المعدل</th>
-            <th>الاختصاص</th>
+            <th>التخصص</th>
             <th>نوع المقعد</th>
         </tr>
     `;
@@ -176,7 +232,7 @@ function fillAccepted(list) {
     });
 }
 
-// تعبئة جدول غير المقبولين
+// غير المقبولين
 function fillRejected(list) {
     const table = document.getElementById("rejectedTable");
     table.innerHTML = `
@@ -239,7 +295,8 @@ function searchStudents() {
         }
     });
 
-    fillAccepted(accepted);
+    fillAcceptedBySpec(accepted);
+    fillFinal(accepted);
     fillRejected(rejected);
 }
 
