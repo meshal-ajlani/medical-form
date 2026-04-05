@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>لوحة إدارة المفاضلة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: "Tajawal", sans-serif;
+    background: #f4f6fb;
+    padding: 20px;
+}
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+h1 {
+    margin-top: 0;
+    text-align: center;
+    color: #0a4c8c;
+}
+h2 {
+    color: #0a4c8c;
+    margin-top: 25px;
+}
+h3, h4 {
+    color: #0a4c8c;
+}
+.section-box {
+    margin-top: 25px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f7f9ff;
+}
+.stats {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.stat-box {
+    flex: 1;
+    min-width: 180px;
+    background: #f0f6ff;
+    border-radius: 10px;
+    padding: 12px 15px;
+    border-right: 4px solid #0a84ff;
+}
+.stat-title {
+    font-size: 14px;
+    color: #555;
+}
+.stat-value {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 5px;
+    color: #0a4c8c;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 12px;
+}
+th, td {
+    border: 1px solid #d0d7e2;
+    padding: 5px 6px;
+    text-align: center;
+}
+th {
+    background: #e8f0ff;
+    font-weight: 600;
+}
+tr:nth-child(even) {
+    background: #fafbff;
+}
+button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #0a84ff;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 5px 5px 10px 0;
+}
+button.secondary {
+    background: #6c757d;
+}
+button.danger {
+    background: #dc3545;
+}
+.note {
+    font-size: 12px;
+    color: #777;
+    margin-top: 8px;
+}
+#seatsWrapper {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #d0d7e2;
+    border-radius: 8px;
+    padding: 5px;
+    background: #ffffff;
+}
+input[type="number"] {
+    width: 70px;
+    padding: 3px;
+    text-align: center;
+}
+#searchInput {
+    width: 250px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid #d0d7e2;
+    margin-bottom: 10px;
+}
+.badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 11px;
+    background: #e8f0ff;
+    color: #0a4c8c;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>لوحة إدارة مفاضلة التخصصات</h1>
+
+    <!-- تعديل المقاعد -->
+    <div class="section-box">
+        <h2>تعديل المقاعد لكل اختصاص</h2>
+        <p class="note">يتم حفظ المقاعد في المتصفح (LocalStorage). يمكن إعادة المقاعد الافتراضية في أي وقت.</p>
+        <div id="seatsWrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>التخصص</th>
+                        <th>العام</th>
+                        <th>الموازي</th>
+                        <th>الصحة</th>
+                    </tr>
+                </thead>
+                <tbody id="seatsBody"></tbody>
+            </table>
+        </div>
+        <div style="margin-top:10px;">
+            <button id="saveSeatsBtn">حفظ المقاعد</button>
+            <button id="resetSeatsBtn" class="secondary">إعادة المقاعد الافتراضية</button>
+            <span id="seatsMsg" class="note"></span>
+        </div>
+    </div>
+
+    <!-- إحصائيات عامة -->
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-title">عدد الطلاب المسجلين</div>
+            <div class="stat-value" id="totalStudents">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-title">أعلى معدل</div>
+            <div class="stat-value" id="maxGrade">-</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-title">أقل معدل</div>
+            <div class="stat-value" id="minGrade">-</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-title">متوسط المعدلات</div>
+            <div class="stat-value" id="avgGrade">-</div>
+        </div>
+    </div>
+
+    <!-- أزرار التحكم -->
+    <div class="section-box">
+        <h2>التحكم بالتوزيع والنتائج</h2>
+        <button id="runBtn">تشغيل التوزيع</button>
+        <button id="rerunBtn" class="secondary">إعادة التوزيع الآن</button>
+        <button id="exportXlsxBtn">تصدير المقبولين إلى Excel (XLSX)</button>
+        <span class="note">يعتمد على بيانات الطلاب المخزنة من صفحة التسجيل.</span>
+    </div>
+
+    <!-- الحد الأدنى -->
+    <div class="section-box">
+        <h2>الحد الأدنى حسب المقاعد (عام / موازي / صحة)</h2>
+        <table id="cutoffsTable">
+            <thead>
+                <tr>
+                    <th>التخصص</th>
+                    <th>العام</th>
+                    <th>الموازي</th>
+                    <th>الصحة</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- البحث داخل المقبولين -->
+    <div class="section-box">
+        <h2>البحث داخل المقبولين</h2>
+        <input id="searchInput" type="text" placeholder="🔍 ابحث بالاسم أو الرقم الامتحاني">
+        <p class="note">يتم البحث داخل الجدول الشامل للمقبولين في الأسفل.</p>
+    </div>
+
+    <!-- المقبولون حسب التخصص -->
+    <div class="section-box">
+        <h2>المقبولون حسب كل تخصص ونوع مقعد</h2>
+        <div id="acceptedBySpec"></div>
+    </div>
+
+    <!-- جدول شامل -->
+    <div class="section-box">
+        <h2>جدول شامل بكل المقبولين</h2>
+        <table id="globalTable">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>الرقم الامتحاني</th>
+                    <th>المعدل</th>
+                    <th>الاختصاص المقبول</th>
+                    <th>نوع المقعد</th>
+                    <th>الرغبة التي قبل عليها</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- مكتبة Excel (SheetJS) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+// =======================
+// 1) قائمة التخصصات
+// =======================
+const specialties = [
+    "الداخلية القلبية",
+    "الداخلية الهضمية",
+    "الداخلية الصدرية",
+    "الداخلية الغدية",
+    "الداخلية العصبية",
+    "الداخلية الدموية",
+    "الداخلية الكلية",
+    "الداخلية الرئوية",
+    "الداخلية الخمجية",
+    "الطب النفسي",
+    "العينية",
+    "الأذنية",
+    "الجلدية",
+    "طب الأطفال",
+    "النسائية والتوليد",
+    "الجراحة العامة",
+    "الجراحة العظمية",
+    "الجراحة البولية",
+    "الجراحة الصدرية",
+    "الجراحة العصبية",
+    "الجراحة التجميلية",
+    "الجراحة القلبية",
+    "جراحة الأوعية",
+    "جراحة الأطفال",
+    "الطب المخبري",
+    "التصوير الطبي والشعاعي",
+    "التشريح المرضي",
+    "طب الأورام",
+    "طب الأسرة",
+    "الطب الشرعي",
+    "طب الطوارئ",
+    "التخدير والإنعاش",
+    "الطب الفيزيائي",
+    "الطب النووي",
+    "المعالجة الشعاعية للأورام"
+];
+
+// seatsData: { "التخصص": {general, parallel, health} }
+let seatsData = {};
+let defaultSeatsData = {}; // من seats.json إن وجد
+let lastAcceptedGlobal = []; // آخر نتائج توزيع
+
+// =======================
+// 2) تحميل الطلاب
+// =======================
+function getStudents() {
+    return JSON.parse(localStorage.getItem("students") || "[]");
+}
+
+// =======================
+// 3) تحميل المقاعد الافتراضية من seats.json (إن وجد)
+// =======================
+async function loadDefaultSeatsFromFile() {
+    try {
+        const res = await fetch("seats.json");
+        if (!res.ok) throw new Error("no seats.json");
+        const json = await res.json();
+        defaultSeatsData = {};
+        specialties.forEach(spec => {
+            const s = json[spec] || {};
+            defaultSeatsData[spec] = {
+                general: parseInt(s.general || 0),
+                parallel: parseInt(s.parallel || 0),
+                health: parseInt(s.health || 0)
+            };
+        });
+    } catch (e) {
+        // لو ما في seats.json، نخلي الكل صفر
+        specialties.forEach(spec => {
+            defaultSeatsData[spec] = {general:0, parallel:0, health:0};
+        });
+    }
+}
+
+// =======================
+// 4) تحميل المقاعد من LocalStorage أو الافتراضي
+// =======================
+function loadSeatsFromLocalOrDefault() {
+    const saved = localStorage.getItem("seatsData");
+    if (saved) {
+        seatsData = JSON.parse(saved);
+    } else {
+        seatsData = JSON.parse(JSON.stringify(defaultSeatsData));
+    }
+}
+
+// =======================
+// 5) بناء جدول تعديل المقاعد
+// =======================
+function buildSeatsTable() {
+    const tbody = document.getElementById("seatsBody");
+    tbody.innerHTML = "";
+    specialties.forEach(spec => {
+        const row = document.createElement("tr");
+        const s = seatsData[spec] || {general:0, parallel:0, health:0};
+        row.innerHTML = `
+            <td>${spec}</td>
+            <td><input type="number" min="0" value="${s.general}" data-spec="${spec}" data-type="general"></td>
+            <td><input type="number" min="0" value="${s.parallel}" data-spec="${spec}" data-type="parallel"></td>
+            <td><input type="number" min="0" value="${s.health}" data-spec="${spec}" data-type="health"></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// =======================
+// 6) حفظ المقاعد من الجدول
+// =======================
+function saveSeatsFromUI() {
+    const inputs = document.querySelectorAll("#seatsBody input[type='number']");
+    const newSeats = {};
+    specialties.forEach(spec => {
+        newSeats[spec] = {general:0, parallel:0, health:0};
+    });
+    inputs.forEach(inp => {
+        const spec = inp.getAttribute("data-spec");
+        const type = inp.getAttribute("data-type");
+        const val = parseInt(inp.value || "0");
+        if (!newSeats[spec]) newSeats[spec] = {general:0, parallel:0, health:0};
+        newSeats[spec][type] = isNaN(val) ? 0 : val;
+    });
+    seatsData = newSeats;
+    localStorage.setItem("seatsData", JSON.stringify(seatsData));
+    const msg = document.getElementById("seatsMsg");
+    msg.textContent = "تم حفظ المقاعد بنجاح.";
+    setTimeout(() => msg.textContent = "", 3000);
+}
+
+// =======================
+// 7) إعادة المقاعد الافتراضية
+// =======================
+function resetSeatsToDefault() {
+    seatsData = JSON.parse(JSON.stringify(defaultSeatsData));
+    localStorage.setItem("seatsData", JSON.stringify(seatsData));
+    buildSeatsTable();
+    const msg = document.getElementById("seatsMsg");
+    msg.textContent = "تمت إعادة المقاعد إلى القيم الافتراضية.";
+    setTimeout(() => msg.textContent = "", 3000);
+}
+
+// =======================
+// 8) التوزيع
+// =======================
+function runDistribution(students) {
+    // إحصائيات عامة
+    const grades = students.map(s => s.grade).filter(g => !isNaN(g));
+    const totalStudents = students.length;
+    const maxGrade = grades.length ? Math.max(...grades) : 0;
+    const minGrade = grades.length ? Math.min(...grades) : 0;
+    const avgGrade = grades.length ? (grades.reduce((a,b)=>a+b,0) / grades.length) : 0;
+
+    document.getElementById("totalStudents").innerText = totalStudents;
+    document.getElementById("maxGrade").innerText = grades.length ? maxGrade.toFixed(2) : "-";
+    document.getElementById("minGrade").innerText = grades.length ? minGrade.toFixed(2) : "-";
+    document.getElementById("avgGrade").innerText = grades.length ? avgGrade.toFixed(2) : "-";
+
+    // ترتيب الطلاب تنازلياً حسب المعدل
+    const sorted = [...students].sort((a,b) => b.grade - a.grade);
+
+    // نسخ المقاعد الحالية
+    const remainingSeats = {};
+    specialties.forEach(spec => {
+        const s = seatsData[spec] || {general:0, parallel:0, health:0};
+        remainingSeats[spec] = {
+            general: parseInt(s.general || 0),
+            parallel: parseInt(s.parallel || 0),
+            health: parseInt(s.health || 0)
+        };
+    });
+
+    const acceptedBySpecialty = {};
+    const globalAccepted = [];
+
+    for (const stu of sorted) {
+        let assigned = false;
+        for (let i = 0; i < 10; i++) {
+            const type = stu.types[i] || "";
+            const choice = stu.choices[i] || "";
+            if (!type || !choice) continue;
+            if (!remainingSeats[choice]) continue;
+
+            let seatTypeKey = null;
+            if (type === "دراسات عليا - تسجيل عام") seatTypeKey = "general";
+            else if (type === "دراسات عليا - تسجيل موازي") seatTypeKey = "parallel";
+            else if (type === "وزارة الصحة") seatTypeKey = "health";
+            else continue;
+
+            if (remainingSeats[choice][seatTypeKey] > 0) {
+                remainingSeats[choice][seatTypeKey]--;
+
+                if (!acceptedBySpecialty[choice]) acceptedBySpecialty[choice] = {general:[], parallel:[], health:[]};
+                acceptedBySpecialty[choice][seatTypeKey].push({
+                    name: stu.name,
+                    exam: stu.exam,
+                    grade: stu.grade,
+                    wish: i+1
+                });
+
+                globalAccepted.push({
+                    name: stu.name,
+                    exam: stu.exam,
+                    grade: stu.grade,
+                    spec: choice,
+                    seatType: seatTypeKey,
+                    wish: i+1
+                });
+
+                assigned = true;
+                break;
+            }
+        }
+    }
+
+    lastAcceptedGlobal = globalAccepted;
+    renderCutoffs(acceptedBySpecialty);
+    renderAcceptedBySpec(acceptedBySpecialty);
+    renderGlobal(globalAccepted);
+}
+
+// =======================
+// 9) عرض الحد الأدنى
+// =======================
+function renderCutoffs(acceptedBySpecialty) {
+    const tbody = document.querySelector("#cutoffsTable tbody");
+    tbody.innerHTML = "";
+
+    specialties.forEach(spec => {
+        const data = acceptedBySpecialty[spec] || {general:[], parallel:[], health:[]};
+        const g = data.general;
+        const p = data.parallel;
+        const h = data.health;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${spec}</td>
+            <td>${g.length ? g[g.length-1].grade.toFixed(2) : "-"}</td>
+            <td>${p.length ? p[p.length-1].grade.toFixed(2) : "-"}</td>
+            <td>${h.length ? h[h.length-1].grade.toFixed(2) : "-"}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// =======================
+// 10) عرض المقبولين حسب التخصص
+// =======================
+function renderAcceptedBySpec(acceptedBySpecialty) {
+    const container = document.getElementById("acceptedBySpec");
+    container.innerHTML = "";
+
+    specialties.forEach(spec => {
+        const data = acceptedBySpecialty[spec];
+        if (!data) return;
+
+        const div = document.createElement("div");
+        div.innerHTML = `<h3>${spec}</h3>`;
+
+        ["general","parallel","health"].forEach(type => {
+            const list = data[type];
+            const label = type === "general" ? "تسجيل عام" :
+                          type === "parallel" ? "تسجيل موازي" :
+                          "وزارة الصحة";
+
+            div.innerHTML += `<h4>${label} <span class="badge">${list.length} مقبول</span></h4>`;
+
+            if (!list.length) {
+                div.innerHTML += `<p>لا يوجد مقبولين</p>`;
+                return;
+            }
+
+            let table = `<table><thead>
+                <tr><th>الاسم</th><th>الرقم</th><th>المعدل</th><th>الرغبة</th></tr>
+            </thead><tbody>`;
+
+            list.forEach(s => {
+                table += `<tr>
+                    <td>${s.name}</td>
+                    <td>${s.exam}</td>
+                    <td>${s.grade.toFixed(2)}</td>
+                    <td>${s.wish}</td>
+                </tr>`;
+            });
+
+            table += `</tbody></table>`;
+            div.innerHTML += table;
+        });
+
+        container.appendChild(div);
+    });
+}
+
+// =======================
+// 11) عرض الجدول الشامل
+// =======================
+function renderGlobal(globalAccepted) {
+    const tbody = document.querySelector("#globalTable tbody");
+    tbody.innerHTML = "";
+
+    globalAccepted.forEach(s => {
+        const seatLabel = s.seatType === "general" ? "تسجيل عام" :
+                          s.seatType === "parallel" ? "تسجيل موازي" :
+                          "وزارة الصحة";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.exam}</td>
+            <td>${s.grade.toFixed(2)}</td>
+            <td>${s.spec}</td>
+            <td>${seatLabel}</td>
+            <td>${s.wish}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// =======================
+// 12) البحث داخل المقبولين (الجدول الشامل)
+// =======================
+function setupSearch() {
+    const input = document.getElementById("searchInput");
+    input.addEventListener("input", () => {
+        const term = input.value.trim().toLowerCase();
+        const rows = document.querySelectorAll("#globalTable tbody tr");
+        rows.forEach(row => {
+            const name = row.cells[0].innerText.toLowerCase();
+            const exam = row.cells[1].innerText.toLowerCase();
+            if (!term || name.includes(term) || exam.includes(term)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+}
+
+// =======================
+// 13) تصدير إلى Excel (XLSX)
+// =======================
+function exportToXlsx() {
+    const table = document.getElementById("globalTable");
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.table_to_sheet(table);
+    XLSX.utils.book_append_sheet(wb, ws, "المقبولون");
+    XLSX.writeFile(wb, "accepted_students.xlsx");
+}
+
+// =======================
+// 14) تهيئة الصفحة
+// =======================
+async function initAdmin() {
+    await loadDefaultSeatsFromFile();
+    loadSeatsFromLocalOrDefault();
+    buildSeatsTable();
+    setupSearch();
+
+    document.getElementById("saveSeatsBtn").addEventListener("click", saveSeatsFromUI);
+    document.getElementById("resetSeatsBtn").addEventListener("click", resetSeatsToDefault);
+
+    document.getElementById("runBtn").addEventListener("click", () => {
+        const students = getStudents();
+        if (!students.length) {
+            alert("لا يوجد طلاب مسجلين.");
+            return;
+        }
+        runDistribution(students);
+    });
+
+    document.getElementById("rerunBtn").addEventListener("click", () => {
+        const students = getStudents();
+        if (!students.length) {
+            alert("لا يوجد طلاب مسجلين.");
+            return;
+        }
+        runDistribution(students);
+    });
+
+    document.getElementById("exportXlsxBtn").addEventListener("click", () => {
+        const rows = document.querySelectorAll("#globalTable tbody tr");
+        if (!rows.length) {
+            alert("لا يوجد بيانات لتصديرها.");
+            return;
+        }
+        exportToXlsx();
+    });
+}
+
+initAdmin();
+</script>
+
+</body>
+</html>
