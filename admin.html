@@ -58,10 +58,12 @@ button {
 
     <button onclick="runDistribution()">تشغيل التوزيع</button>
 
+    <!-- جدول المقاعد -->
     <div class="section-title">تعديل المقاعد</div>
     <table id="seatsTable"></table>
     <button onclick="saveSeats()">حفظ المقاعد</button>
 
+    <!-- الحد الأدنى -->
     <div class="section-title">الحد الأدنى</div>
     <table id="minTable">
         <tr>
@@ -70,6 +72,7 @@ button {
         </tr>
     </table>
 
+    <!-- المقبولون حسب كل تخصص -->
     <div class="section-title">المقبولون حسب كل تخصص</div>
     <table id="acceptedBySpec">
         <tr>
@@ -81,6 +84,7 @@ button {
         </tr>
     </table>
 
+    <!-- الجدول الشامل -->
     <div class="section-title">الجدول الشامل</div>
     <table id="finalTable">
         <tr>
@@ -96,7 +100,7 @@ button {
 
 <script>
 
-// تحميل المقاعد
+// تحميل المقاعد من seats.json
 function loadSeats() {
     fetch("seats.json")
         .then(r => r.json())
