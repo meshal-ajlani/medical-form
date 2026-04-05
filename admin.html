@@ -2,244 +2,253 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>نظام القبول – النسخة النهائية</title>
+<title>لوحة الإدارة</title>
 <style>
-body { font-family: Tahoma; background: #f4f7fb; margin: 0; padding: 0; }
-.container { max-width: 1200px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-h2 { color: #1d4ed8; margin-bottom: 10px; }
-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-th { background: #e8f0fe; }
-.scroll-box { max-height: 350px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
-button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 5px; }
-button:hover { background: #1d4ed8; }
+    body {
+        font-family: "Cairo", sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        margin-bottom: 40px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+    }
+    th {
+        background: #007bff;
+        color: white;
+    }
+    input {
+        width: 70px;
+        padding: 5px;
+        text-align: center;
+    }
+    button {
+        padding: 8px 15px;
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+    button:hover {
+        background: #0056b3;
+    }
+    .section-title {
+        font-size: 22px;
+        margin: 20px 0 10px;
+        font-weight: bold;
+    }
 </style>
-</head>
-<body>
-
-<div class="container">
-
-<h2>إدارة النظام</h2>
-<button onclick="deleteAllStudents()">حذف جميع الطلاب</button>
-<button onclick="deleteResults()">حذف النتائج</button>
-
-<h2>المقاعد</h2>
-<div class="scroll-box">
-<table id="seatsTable">
-<tr>
-    <th>التخصص</th>
-    <th>عام</th>
-    <th>موازي</th>
-    <th>صحة</th>
-</tr>
-</table>
-</div>
-
-<h2>النتائج</h2>
-<div class="scroll-box">
-<table id="resultsTable">
-<tr>
-    <th>الاسم</th>
-    <th>الرقم</th>
-    <th>المعدل</th>
-    <th>التخصص</th>
-    <th>نوع المقعد</th>
-    <th>الرغبة</th>
-    <th>حذف</th>
-</tr>
-</table>
-</div>
-
-<h2>الحد الأدنى</h2>
-<div class="scroll-box">
-<table id="minTable">
-<tr>
-    <th>التخصص</th>
-    <th>عام</th>
-    <th>موازي</th>
-    <th>صحة</th>
-</tr>
-</table>
-</div>
-
-</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-// Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyA9PmgtkNuY25DEy6_G30tryB-d4s3l_2g",
-    authDomain: "medical-form-80f5a.firebaseapp.com",
-    databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app/",
-    projectId: "medical-form-80f5a",
-    storageBucket: "medical-form-80f5a.firebasestorage.app",
-    messagingSenderId: "662141312032",
-    appId: "1:662141312032:web:14b50dd58662927952b045"
+    apiKey: "AIzaSyD1p3vXx5p4Yp6qz0l4ZlqVvYqYp6qz0l4",
+    authDomain: "medical-form2025.firebaseapp.com",
+    databaseURL: "https://medical-form2025-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "medical-form2025",
+    storageBucket: "medical-form2025.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef123456"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+</script>
+</head>
+<body>
 
-// التخصصات
-const specialties = [
-"الداخلية العامة","الداخلية القلبية","الداخلية الهضمية","الداخلية الصدرية","الداخلية الغدية",
-"الداخلية العصبية","الداخلية الدموية","الداخلية الكلوية","الداخلية الرثوية","الداخلية الخمجية",
-"الطب النفسي","العينية","الأذنية","الجلدية","طب الأطفال","النسائية والتوليد",
-"الجراحة العامة","الجراحة العظمية","الجراحة البولية","الجراحة الصدرية","الجراحة العصبية",
-"الجراحة التجميلية","الجراحة القلبية","جراحة الأوعية","جراحة الأطفال",
-"الطب المخبري","التصوير الطبي والشعاعي","التشريح المرضي","طب الأورام","طب الأسرة",
-"الطب الشرعي","طب الطوارئ","التخدير والإنعاش","الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
-];
+<h1>لوحة الإدارة</h1>
 
-// تحويل نوع المقعد
-function typeMap(type) {
-    if (!type) return null;
+<div class="section-title">تعديل المقاعد</div>
 
-    if (type.includes("دراسات عام")) return "عام";
-    if (type.includes("دراسات موازي")) return "موازي";
-    if (type.includes("وزارة الصحة")) return "صحة";
+<table id="seatsTable">
+    <tr>
+        <th>التخصص</th>
+        <th>عام</th>
+        <th>موازي</th>
+        <th>صحة</th>
+        <th>حفظ</th>
+    </tr>
+</table>
 
-    return null;
-}
+<button onclick="saveAllSeats()">حفظ جميع المقاعد</button>
 
-// حذف طالب واحد
-function deleteStudent(exam) {
-    db.ref("students/" + exam).remove();
-    db.ref("results/" + exam).remove();
-}
+<script>
+// تحميل التخصصات من الجذر مباشرة
+function loadSpecialties() {
+    db.ref("/").once("value", snapshot => {
+        const data = snapshot.val();
+        const table = document.getElementById("seatsTable");
 
-// حذف جميع الطلاب
-function deleteAllStudents() {
-    if (confirm("هل أنت متأكد؟")) {
-        db.ref("students").remove();
-        db.ref("results").remove();
-        db.ref("min_scores").remove();
-    }
-}
+        for (let key in data) {
+            // نتأكد إنه هذا المفتاح هو تخصص (عام/موازي/صحة)
+            if (
+                typeof data[key] === "object" &&
+                data[key].hasOwnProperty("عام") &&
+                data[key].hasOwnProperty("موازي") &&
+                data[key].hasOwnProperty("صحة")
+            ) {
+                const row = document.createElement("tr");
 
-// حذف النتائج فقط
-function deleteResults() {
-    db.ref("results").remove();
-    db.ref("min_scores").remove();
-    alert("تم حذف النتائج");
-}
+                row.innerHTML = `
+                    <td>${key}</td>
+                    <td><input id="${key}-عام" type="number" value="${data[key].عام}"></td>
+                    <td><input id="${key}-موازي" type="number" value="${data[key].موازي}"></td>
+                    <td><input id="${key}-صحة" type="number" value="${data[key].صحة}"></td>
+                    <td><button onclick="saveSeat('${key}')">حفظ</button></td>
+                `;
 
-// تحميل المقاعد
-function loadSeats() {
-    const table = document.getElementById("seatsTable");
-
-    specialties.forEach(spec => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${spec}</td>
-            <td id="seat-${spec}-عام"></td>
-            <td id="seat-${spec}-موازي"></td>
-            <td id="seat-${spec}-صحة"></td>
-        `;
-        table.appendChild(row);
+                table.appendChild(row);
+            }
+        }
     });
+}
+// تحميل التخصصات من الجذر مباشرة
+function loadSpecialties() {
+    db.ref("/").once("value", snapshot => {
+        const data = snapshot.val();
+        const table = document.getElementById("seatsTable");
 
-    db.ref("seats").once("value", snap => {
-        const data = snap.val() || {};
-        Object.keys(data).forEach(spec => {
-            document.getElementById(`seat-${spec}-عام`).textContent = data[spec].عام;
-            document.getElementById(`seat-${spec}-موازي`).textContent = data[spec].موازي;
-            document.getElementById(`seat-${spec}-صحة`).textContent = data[spec].صحة;
+        for (let key in data) {
+            // نتأكد إنه هذا المفتاح هو تخصص (عام/موازي/صحة)
+            if (
+                typeof data[key] === "object" &&
+                data[key].hasOwnProperty("عام") &&
+                data[key].hasOwnProperty("موازي") &&
+                data[key].hasOwnProperty("صحة")
+            ) {
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${key}</td>
+                    <td><input id="${key}-عام" type="number" value="${data[key].عام}"></td>
+                    <td><input id="${key}-موازي" type="number" value="${data[key].موازي}"></td>
+                    <td><input id="${key}-صحة" type="number" value="${data[key].صحة}"></td>
+                    <td><button onclick="saveSeat('${key}')">حفظ</button></td>
+                `;
+
+                table.appendChild(row);
+            }
+        }
+    });
+}
+// دالة القبول التلقائي
+function runAcceptance() {
+    db.ref("/students").once("value", snap => {
+        const students = snap.val() || {};
+        let arr = [];
+
+        // إذا ما في طلاب → فقط حدث الحد الأدنى وارجع
+        if (!students || Object.keys(students).length === 0) {
+            db.ref("min_scores").set({});
+            db.ref("results").set({});
+            return;
+        }
+
+        // تحويل الطلاب لمصفوفة
+        for (let id in students) {
+            arr.push({
+                id: id,
+                name: students[id].name,
+                score: students[id].score,
+                type: students[id].type, // عام/موازي/صحة
+                choices: students[id].choices
+            });
+        }
+
+        // ترتيب الطلاب حسب العلامة
+        arr.sort((a, b) => b.score - a.score);
+
+        // تحميل المقاعد (التخصصات)
+        db.ref("/").once("value", snapshot => {
+            const data = snapshot.val();
+            let seats = {};
+
+            // استخراج التخصصات من الجذر
+            for (let key in data) {
+                if (
+                    typeof data[key] === "object" &&
+                    data[key].hasOwnProperty("عام") &&
+                    data[key].hasOwnProperty("موازي") &&
+                    data[key].hasOwnProperty("صحة")
+                ) {
+                    seats[key] = {
+                        "عام": data[key].عام,
+                        "موازي": data[key].موازي,
+                        "صحة": data[key].صحة
+                    };
+                }
+            }
+
+            let used = {};       // المقاعد المستخدمة
+            let results = {};    // نتائج القبول
+            let minScores = {};  // الحد الأدنى
+
+            // تهيئة المقاعد المستخدمة
+            for (let sp in seats) {
+                used[sp] = { "عام": 0, "موازي": 0, "صحة": 0 };
+            }
+
+            // توزيع الطلاب
+            arr.forEach(st => {
+                for (let choice of st.choices) {
+                    if (!seats[choice]) continue;
+
+                    let type = st.type;
+                    if (used[choice][type] < seats[choice][type]) {
+                        used[choice][type]++;
+                        results[st.id] = {
+                            name: st.name,
+                            score: st.score,
+                            accepted: choice,
+                            type: type
+                        };
+
+                        // تحديث الحد الأدنى
+                        if (!minScores[choice] || st.score < minScores[choice]) {
+                            minScores[choice] = st.score;
+                        }
+
+                        return;
+                    }
+                }
+
+                // إذا لم يُقبل
+                results[st.id] = {
+                    name: st.name,
+                    score: st.score,
+                    accepted: "مرفوض",
+                    type: st.type
+                };
+            });
+
+            // حفظ النتائج
+            db.ref("results").set(results);
+            db.ref("min_scores").set(minScores);
         });
     });
 }
 
-// دالة القبول الجديدة 100%
-async function runAcceptance() {
+// تشغيل القبول عند فتح الصفحة
+loadSpecialties();
+runAcceptance();
 
-    console.clear();
-    console.log("🚀 بدء عملية القبول…");
+</script>
 
-    // تحميل المقاعد
-    const seatsSnap = await db.ref("seats").once("value");
-    const seats = seatsSnap.val() || {};
-
-    // تحميل الطلاب
-    const studentsSnap = await db.ref("students").once("value");
-    const students = [];
-    studentsSnap.forEach(s => students.push(s.val()));
-
-    // تحويل المعدل إلى رقم
-    students.forEach(s => s.score = Number(s.score));
-
-    // ترتيب الطلاب من الأعلى للأدنى
-    students.sort((a, b) => b.score - a.score);
-
-    const results = {};
-    const minScores = {};
-
-    for (const st of students) {
-
-        const examKey = String(st.exam);
-        let assigned = false;
-
-        // 🔥 الحصول على عدد الرغبات الحقيقي
-        const choices = st.choices || {};
-        const choiceNumbers = Object.keys(choices).sort((a, b) => Number(a) - Number(b));
-
-        for (const num of choiceNumbers) {
-
-            const choice = choices[num];
-            if (!choice) continue;
-
-            const spec = choice.specialty;
-            const type = choice.type;
-            const seatKey = typeMap(type);
-
-            if (!spec || !seatKey) continue;
-            if (!seats[spec]) continue;
-            if (seats[spec][seatKey] === undefined) continue;
-
-            // إذا في مقعد → قبول فوري
-            if (seats[spec][seatKey] > 0) {
-
-                seats[spec][seatKey]--;
-
-                results[examKey] = {
-                    accepted: true,
-                    name: st.name,
-                    exam: st.exam,
-                    score: st.score,
-                    specialty: spec,
-                    type: type,
-                    choiceNumber: Number(num)
-                };
-
-                // تحديث الحد الأدنى
-                if (!minScores[spec])
-                    minScores[spec] = { عام: "—", موازي: "—", صحة: "—" };
-
-                const currentMin = minScores[spec][seatKey];
-                if (currentMin === "—" || st.score < currentMin)
-                    minScores[spec][seatKey] = st.score;
-
-                assigned = true;
-                break;
-            }
-        }
-
-        // إذا لم يُقبل
-        if (!assigned) {
-            results[examKey] = {
-                accepted: false,
-                name: st.name,
-                exam: st.exam,
-                score: st.score
-            };
-        }
-    }
-
-    // حفظ النتائج
-    await db.ref("results").set(results);
-    await db.ref("min_scores").set(minScores);
-    await db.ref("seats_used").set(seats);
-
-    console.log("📌 النتائج النهائية:", results);
-}
+</body>
+</html>
