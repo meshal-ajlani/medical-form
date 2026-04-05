@@ -107,6 +107,7 @@ th, td {
             <th>الرقم الامتحاني</th>
             <th>المعدل</th>
             <th>نوع المقعد</th>
+            <th>رقم الرغبة</th>
         </tr>
     </table>
 
@@ -119,6 +120,18 @@ th, td {
             <th>المعدل</th>
             <th>التخصص</th>
             <th>نوع المقعد</th>
+            <th>رقم الرغبة</th>
+        </tr>
+    </table>
+
+    <!-- غير المقبولين -->
+    <div class="section-title">غير المقبولين</div>
+    <table id="rejectedTable">
+        <tr>
+            <th>الاسم</th>
+            <th>الرقم الامتحاني</th>
+            <th>المعدل</th>
+            <th>سبب الرفض</th>
         </tr>
     </table>
 
@@ -139,11 +152,10 @@ const specialties = [
     "الطب الفيزيائي","الطب النووي","المعالجة الشعاعية للأورام"
 ];
 
-// تحميل المقاعد من LocalStorage
+// تحميل المقاعد
 function loadSeats() {
     let seats = JSON.parse(localStorage.getItem("seats") || "{}");
 
-    // إذا أول مرة → نعمل مقاعد افتراضية
     if (Object.keys(seats).length === 0) {
         specialties.forEach(s => {
             seats[s] = { general: 0, parallel: 0, health: 0 };
@@ -214,13 +226,23 @@ function deleteOneStudent() {
     updateResults();
 }
 
-// التوزيع التلقائي
+// تحويل نوع المقعد
+function typeMap(type) {
+    if (type.includes("عام")) return "general";
+    if (type.includes("موازي")) return "parallel";
+    return "health";
+}
+
+// التوزيع
 function updateResults() {
     const students = JSON.parse(localStorage.getItem("students") || "[]");
     const seats = JSON.parse(localStorage.getItem("seats") || "{}");
 
     const accepted = [];
+    const rejected = [];
     const minScores = {};
+
+    const seatsCopy = JSON.parse(JSON.stringify(seats));
 
     students.forEach(student => {
         let assigned = false;
@@ -231,36 +253,44 @@ function updateResults() {
 
             if (!spec || !type) continue;
 
-            if (seats[spec][typeMap(type)] > 0) {
-                seats[spec][typeMap(type)]--;
+            const seatKey = typeMap(type);
+
+            if (seatsCopy[spec][seatKey] > 0) {
+                seatsCopy[spec][seatKey]--;
 
                 accepted.push({
                     name: student.name,
                     exam: student.exam,
                     grade: student.grade,
                     specialty: spec,
-                    seatType: type
+                    seatType: type,
+                    choiceNumber: i + 1
                 });
 
-                if (!minScores[spec]) minScores[spec] = { general: "-", parallel: "-", health: "-" };
-                minScores[spec][typeMap(type)] = student.grade;
+                if (!minScores[spec])
+                    minScores[spec] = { general: "-", parallel: "-", health: "-" };
+
+                minScores[spec][seatKey] = student.grade;
 
                 assigned = true;
                 break;
             }
+        }
+
+        if (!assigned) {
+            rejected.push({
+                name: student.name,
+                exam: student.exam,
+                grade: student.grade,
+                reason: "لم يحصل على أي رغبة"
+            });
         }
     });
 
     fillMin(minScores);
     fillAcceptedBySpec(accepted);
     fillFinal(accepted);
-}
-
-// تحويل نوع المقعد
-function typeMap(type) {
-    if (type.includes("عام")) return "general";
-    if (type.includes("موازي")) return "parallel";
-    return "health";
+    fillRejected(rejected);
 }
 
 // الحد الأدنى
@@ -287,7 +317,7 @@ function fillMin(minScores) {
     });
 }
 
-// المقبولون حسب كل تخصص
+// المقبولون حسب التخصص
 function fillAcceptedBySpec(list) {
     const table = document.getElementById("acceptedBySpec");
     table.innerHTML = `
@@ -297,6 +327,7 @@ function fillAcceptedBySpec(list) {
             <th>الرقم الامتحاني</th>
             <th>المعدل</th>
             <th>نوع المقعد</th>
+            <th>رقم الرغبة</th>
         </tr>
     `;
 
@@ -308,6 +339,7 @@ function fillAcceptedBySpec(list) {
                 <td>${s.exam}</td>
                 <td>${s.grade}</td>
                 <td>${s.seatType}</td>
+                <td>${s.choiceNumber}</td>
             </tr>
         `;
     });
@@ -323,6 +355,7 @@ function fillFinal(list) {
             <th>المعدل</th>
             <th>التخصص</th>
             <th>نوع المقعد</th>
+            <th>رقم الرغبة</th>
         </tr>
     `;
 
@@ -334,6 +367,31 @@ function fillFinal(list) {
                 <td>${s.grade}</td>
                 <td>${s.specialty}</td>
                 <td>${s.seatType}</td>
+                <td>${s.choiceNumber}</td>
+            </tr>
+        `;
+    });
+}
+
+// غير المقبولين
+function fillRejected(list) {
+    const table = document.getElementById("rejectedTable");
+    table.innerHTML = `
+        <tr>
+            <th>الاسم</th>
+            <th>الرقم الامتحاني</th>
+            <th>المعدل</th>
+            <th>سبب الرفض</th>
+        </tr>
+    `;
+
+    list.forEach(s => {
+        table.innerHTML += `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.exam}</td>
+                <td>${s.grade}</td>
+                <td>${s.reason}</td>
             </tr>
         `;
     });
