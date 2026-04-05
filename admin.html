@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>نظام القبول – نسخة مبسطة</title>
+<title>نظام القبول – النسخة النهائية</title>
 <style>
 body { font-family: Tahoma; background: #f4f7fb; margin: 0; padding: 0; }
 .container { max-width: 1200px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
@@ -149,7 +149,7 @@ function loadSeats() {
     });
 }
 
-// دالة القبول الجديدة
+// دالة القبول الجديدة 100%
 async function runAcceptance() {
 
     console.clear();
@@ -186,6 +186,7 @@ async function runAcceptance() {
             if (!seats[spec]) continue;
             if (seats[spec][seatKey] === undefined) continue;
 
+            // إذا في مقعد → قبول فوري
             if (seats[spec][seatKey] > 0) {
 
                 seats[spec][seatKey]--;
