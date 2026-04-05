@@ -388,6 +388,7 @@ async function calculateMinScores(results) {
 
 /* تنفيذ القبول */
 async function runAcceptance() {
+
     const seatsSnap = await db.ref("seats").once("value");
     const seatsOriginal = seatsSnap.val() || {};
 
@@ -406,6 +407,7 @@ async function runAcceptance() {
         let accepted = false;
 
         for (let i = 1; i <= 10; i++) {
+
             if (!st.choices || !st.choices[i]) continue;
 
             const spec = st.choices[i].specialty;
@@ -419,6 +421,7 @@ async function runAcceptance() {
             if (type === "وزارة الصحة") seatKey = "صحة";
 
             if (seats[spec][seatKey] > 0) {
+
                 seats[spec][seatKey]--;
 
                 results[st.exam] = {
@@ -432,7 +435,7 @@ async function runAcceptance() {
                 };
 
                 accepted = true;
-                break; /* 🔥 أهم سطر: يمنع أخذ مقعد من الرغبات التالية */
+                break;
             }
         }
 
@@ -448,7 +451,12 @@ async function runAcceptance() {
 
     await db.ref("results").set(results);
     await db.ref("seats_used").set(seats);
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     await calculateMinScores(results);
+
+    alert("تم تحديث النتائج بنجاح");
 }
 
 /* عرض المقبولين */
