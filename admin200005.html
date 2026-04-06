@@ -648,8 +648,8 @@ students.forEach(s => {
       const s = String(t).trim().toLowerCase();
       if (['عام','a','general','g'].includes(s)) return 'عام';
       if (['موازي','parallel','m'].includes(s)) return 'موازي';
-      if (['الصحة','ministry','وزارة الصحة','وزارة_الصحة'].includes(s)) return 'الصحة';
-      if (s.includes('وز')) return 'الصحة';
+      if (['وزارة','ministry','وزارة الصحة','وزارة_الصحة'].includes(s)) return 'وزارة';
+      if (s.includes('وز')) return 'وزارة';
       if (s.includes('موا')) return 'موازي';
       if (s.includes('عام')) return 'عام';
       return null;
