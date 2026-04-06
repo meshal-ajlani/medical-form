@@ -219,7 +219,7 @@
         inpC.value = '0';
         inpC.className = 'seat-input';
         inpC.dataset.spec = spec;
-        inpC.dataset.type = 'الصحة';
+        inpC.dataset.type = 'وزارة';
         tdC.appendChild(inpC);
         tr.appendChild(tdC);
 
@@ -443,22 +443,6 @@
           setStatus('لا يوجد طلاب', '#fff3cd');
           return;
         }
-
-// تصحيح الأنواع الخاطئة قبل بدء المفاضلة
-students.forEach(stu => {
-  if (stu.type === "وزارة الصحة" || stu.type === "وزارة" || stu.type === "الصحة" || stu.type === "الصحة") {
-    stu.type = "صحة";
-  }
-  if (stu.type === "دراسات عليا م") {
-    stu.type = "عام";
-  }
-  if (stu.type === "دراسات عليا ب") {
-    stu.type = "موازي";
-  }
-  if (stu.type === "دراسات عليا ج") {
-    stu.type = "الصحة";
-  }
-});
 
 // الآن نبدأ معالجة العلامات
 students.forEach(s => {
