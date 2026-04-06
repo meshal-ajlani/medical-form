@@ -446,7 +446,7 @@
 
 // تصحيح الأنواع الخاطئة قبل بدء المفاضلة
 students.forEach(stu => {
-  if (stu.type === "وزارة الصحة" || stu.type === "وزارة" || stu.type === "الصحة" || stu.type === "صحه") {
+  if (stu.type === "وزارة الصحة" || stu.type === "وزارة" || stu.type === "الصحة" || stu.type === "الصحة") {
     stu.type = "صحة";
   }
   if (stu.type === "دراسات عليا م") {
@@ -456,7 +456,7 @@ students.forEach(stu => {
     stu.type = "موازي";
   }
   if (stu.type === "دراسات عليا ج") {
-    stu.type = "صحة";
+    stu.type = "الصحة";
   }
 });
 
