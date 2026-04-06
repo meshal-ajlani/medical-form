@@ -444,8 +444,25 @@
           return;
         }
 
-        students.forEach(s => {
-          s.score = Number(s.score);
+// تصحيح الأنواع الخاطئة قبل بدء المفاضلة
+students.forEach(stu => {
+  if (stu.type === "وزارة الصحة" || stu.type === "وزارة" || stu.type === "الصحة" || stu.type === "صحه") {
+    stu.type = "صحة";
+  }
+  if (stu.type === "دراسات عليا م") {
+    stu.type = "عام";
+  }
+  if (stu.type === "دراسات عليا ب") {
+    stu.type = "موازي";
+  }
+  if (stu.type === "دراسات عليا ج") {
+    stu.type = "صحة";
+  }
+});
+
+// الآن نبدأ معالجة العلامات
+students.forEach(s => {
+  s.score = Number(s.score);
           if (isNaN(s.score)) {
             console.warn(`طالب برقم ${s.examNo || s.id} لديه معدل غير صالح:`, s.score);
             s.score = 0;
